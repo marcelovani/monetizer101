@@ -129,8 +129,11 @@ function _monetizer101_get_content_type_fields($content_type) {
  */
 function monetizer101_field_extra_fields() {
   $extra = array();
+
   foreach (node_type_get_types() as $node) {
-    if (variable_get('monetizer101_product_name_field_' . $node->type, 0) && variable_get('monetizer101_price_field_' . $node->type, 0)) {
+    if (variable_get('monetizer101_product_name_field_' . $node->type, 0)
+      && variable_get('monetizer101_price_field_' . $node->type, 0)) {
+
       $extra['node'][$node->type] = array(
         'display' => array(
           'monetizer101_summary' => array(
@@ -148,9 +151,52 @@ function monetizer101_field_extra_fields() {
           ),
         ),
       );
+      // hide field by default
+      $fields = array(
+        'monetizer101_product_name_field_' . $node->type,
+        'monetizer101_price_field_' . $node->type, 0,
+      );
+      foreach ($fields as $field) {
+        _monetizer101_hide_new_extra_field('node', $node->type, $field);
+      }
     }
   }
   return $extra;
+}
+
+
+/**
+ * Utility function to hide any newly created extra_fields.
+ *
+ * @param string $entity_type
+ *   Entity type on which the new extra field will reside.
+ * @param string $bundle
+ *   Bundle on which the new extra field will reside.
+ * @param string $field_name
+ *   Machine name of extra field.
+ *
+ * @see https://api.drupal.org/comment/60167#comment-60167
+ */
+function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) {
+  $settings = field_bundle_settings($entity_type, $bundle);
+  $settings_updated = FALSE;
+  $entity_info = entity_get_info($entity_type, $bundle);
+  $view_modes = array_keys($entity_info['view modes']);
+  if (!in_array('default', $view_modes)) {
+    $view_modes[] = 'default';
+  }
+  foreach ($view_modes as $view_mode) {
+    if (!isset($settings['extra_fields']['display'][$field_name][$view_mode])) {
+      $settings_updated = TRUE;
+      $settings['extra_fields']['display'][$field_name][$view_mode] = array(
+        'weight' => 100,
+        'visible' => FALSE,
+      );
+    }
+  }
+  if ($settings_updated) {
+    field_bundle_settings($entity_type, $bundle, $settings);
+  }
 }
 
 /**
