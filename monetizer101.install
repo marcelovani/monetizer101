@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * Install file for monetizer101 module.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Make our extra fields hidden by default.
+ */
+function monetizer101_install() {
+  $fields = array('monetizer101_summary', 'monetizer101_best_deals_link');
+  $bundle = 'review';
+  $entity_type = 'node';
+  foreach ($fields as $field_machine_name) {
+    $info = entity_get_info($entity_type);
+    $settings = field_bundle_settings($entity_type, $bundle);
+    $view_modes = array_merge(array('default'), array_keys($info['view modes']));
+    foreach ($view_modes as $view_mode) {
+      $settings['extra_fields']['display'][$field_machine_name][$view_mode] = array(
+        'visible' => FALSE,
+        'weight'  => 0,
+      );
+    }
+    field_bundle_settings($entity_type, $bundle, $settings);
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function monetizer101_uninstall() {
+  variable_del('monetizer101_product_name_field');
+  variable_del('monetizer101_price_field');
+  variable_del('monetizer101_price_range');
+  variable_del('monetizer101_full_listing_limit');
+  variable_del('moetizer101_summary_limit');
+  variable_del('monetizer101_group_results');
+  variable_del('monetizer101_api_key');
+  variable_del('monetizer101_api_url');
+}

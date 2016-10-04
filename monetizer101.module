@@ -1,0 +1,394 @@
+<?php
+
+/**
+ * @file
+ * Monetizer101 module file.
+ */
+
+// Store the HTML ID as a constant, as we need it for fragment linking.
+define('MONETIZER101_FULL_RESULTS_HTML_ID', 'monetizer101-full-results');
+
+/**
+ * Implements hook_menu().
+ */
+function monetizer101_menu() {
+  $items['admin/config/system/monetizer101'] = array(
+    'title' => 'Monetizer101',
+    'description' => 'Set the configuration for Monetizer101 module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('monetizer101_admin_settings'),
+    'access arguments' => array('administer monetizer101 settings'),
+    'file' => 'monetizer101.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function monetizer101_permission() {
+  return array(
+    'administer monetizer101 settings' => array(
+      'title' => t('Administer monetizer101 settings'),
+      'description' => t('Administer monetizer101 settings.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function monetizer101_theme($existing, $type, $theme, $path) {
+  return array(
+    'monetizer101_summary' => array(
+      'variables' => array(
+        'table' => '',
+        'view_all_link' => '',
+        'attributes' => array(),
+      ),
+      'template' => 'monetizer101-summary',
+      'path' => drupal_get_path('module', 'monetizer101') . '/templates',
+    ),
+    'monetizer101_full' => array(
+      'variables' => array('table' => '', 'wrapper_attributes' => array()),
+      'template' => 'monetizer101-full',
+      'path' => drupal_get_path('module', 'monetizer101') . '/templates',
+    ),
+    'monetizer101_table' => array(
+      'variables' => array('items' => array()),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function monetizer101_form_node_type_form_alter(&$form, $form_state) {
+  if (isset($form['type'])) {
+    $content_type = $form['#node_type']->type;
+    $options = _monetizer101_get_content_type_fields($content_type);
+    // Node type edit form.
+    $form['monetizer101'] = array(
+      '#title' => t('Monetizer 101'),
+      '#type' => 'fieldset',
+      '#group' => 'additional_settings',
+      '#tree' => FALSE,
+    );
+    $form['monetizer101']['product_name'] = array(
+      '#type' => 'select',
+      '#title' => t('Product Name'),
+      '#options' => $options,
+      '#default_value' => variable_get('monetizer101_product_name_field_' . $content_type),
+      '#description' => t('Select product name field to use in monetizer api'),
+    );
+    $form['monetizer101']['product_price'] = array(
+      '#type' => 'select',
+      '#title' => t('Price'),
+      '#options' => $options,
+      '#default_value' => variable_get('monetizer101_price_field_' . $content_type),
+      '#description' => t('Select price field to use in monetizer api'),
+    );
+    $form['#submit'][] = 'monetizer101_node_type_callback';
+  }
+}
+
+/**
+ * Custom handler to save monetizer setting form info.
+ */
+function monetizer101_node_type_callback(&$form, &$form_state) {
+  $content_type = $form['#node_type']->type;
+
+  $extra_fields_prodcut_name = 'monetizer101_product_name_field_' . $content_type;
+  $product_value = $form_state['complete form']['monetizer101']['product_name']['#value'];
+
+  $extra_fields_prodcut_price = 'monetizer101_price_field_' . $content_type;
+  $product_price_value = $form_state['complete form']['monetizer101']['product_price']['#value'];
+
+  // Set the variable for this node type.
+  variable_set($extra_fields_prodcut_name, $product_value);
+  variable_set($extra_fields_prodcut_price, $product_price_value);
+
+  // Clear cache.
+  field_info_cache_clear();
+}
+
+/**
+ * Helper to get all field instances of a content type
+ */
+function _monetizer101_get_content_type_fields($content_type) {
+  $fields = array_keys(field_info_instances('node', $content_type));
+  $result = array_combine($fields, $fields);
+  return $result;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ *
+ * These need to be a field so that it can be embedded within a node.
+ */
+function monetizer101_field_extra_fields() {
+  $extra = array();
+  foreach (node_type_get_types() as $node) {
+    if (variable_get('monetizer101_product_name_field_' . $node->type, 0) && variable_get('monetizer101_price_field_' . $node->type, 0)) {
+      $extra['node'][$node->type] = array(
+        'display' => array(
+          'monetizer101_summary' => array(
+            'label' => t('Monetizer101 Results Summary'),
+            'description' => t('Displays the top @count results, and a link to the full result set.', array(
+              '@count',
+              variable_get('moetizer101_summary_limit', 4)
+            )),
+            'weight' => 0,
+          ),
+          'monetizer101_best_deals_link' => array(
+            'label' => t('Monetizer101 Best Deals Link'),
+            'description' => t('Displays a "Best Deals" link to monetizer101 full results.'),
+            'weight' => 0,
+          ),
+        ),
+      );
+    }
+  }
+  return $extra;
+}
+
+/**
+ * Implements hook_block_info().
+ *
+ * Full listing needs to be a block so it can be placed in a region.
+ */
+function monetizer101_block_info() {
+  $blocks['monetizer101_full'] = array(
+    'info' => t('Monetizer101 Full'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_node_view().
+ *
+ * Fill in contents for the monetizer101_summary() and
+ * monetizer101_best_deals_link extra fields.
+ */
+function monetizer101_node_view($node, $view_mode, $langcode) {
+  if (variable_get('monetizer101_product_name_field_' . $node->type, 0) && $view_mode == 'full') {
+
+    $items = monetizer101_get_items($node);
+
+    $view_all_link = '';
+
+    // Only show link if there are more results to be seen there.
+    if (count($items) > variable_get('moetizer101_summary_limit', 4)) {
+      $view_all_link = monetizer101_generate_full_link(t('View All Offers'));
+    }
+
+    // Only show summary on first page (if pagination is enabled).
+    $show_summary = TRUE;
+    if (module_exists('multipage_navigation')) {
+      $pagination = multipage_navigation_get_pagination($node);
+      if (isset($pagination->current_page_number) && $pagination->current_page_number > 1) {
+        $show_summary = FALSE;
+      }
+    }
+
+    if ($show_summary) {
+      $node->content['monetizer101_summary'] = array(
+        '#theme' => 'monetizer101_summary',
+        '#table' => array(
+          '#theme' => 'monetizer101_table',
+          '#items' => array_splice($items, 0, variable_get('moetizer101_summary_limit', 4)),
+        ),
+        '#view_all_link' => $view_all_link,
+      );
+    }
+
+    if (!empty($items)) {
+      $best_deals_link = monetizer101_generate_full_link(t('Best Deals'));
+      $node->content['monetizer101_best_deals_link'] = array(
+        '#markup' => $best_deals_link,
+      );
+    }
+  }
+}
+
+/**
+ * Generate a link to the full m101 results on the current page.
+ *
+ * @param string $text
+ *   The (translated) text that should appear in the link.
+ *
+ * @return string
+ *   A string containing the HTML for the link.
+ */
+function monetizer101_generate_full_link($text) {
+  return l($text, current_path(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function monetizer101_block_view($delta = '') {
+  if ($delta == 'monetizer101_full') {
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if ($node) {
+        $items = monetizer101_get_items($node);
+        $block['content'] = array(
+          '#theme' => 'monetizer101_full',
+          '#table' => array(
+            '#theme' => 'monetizer101_table',
+            '#items' => $items,
+          ),
+          '#wrapper_attributes' => array(
+            'id' => MONETIZER101_FULL_RESULTS_HTML_ID,
+          ),
+        );
+
+        return $block;
+      }
+    }
+  }
+}
+
+/**
+ * Theme callback for monetizer101_table.
+ *
+ * @return
+ *   A fully rendered table of m101 results.
+ */
+function theme_monetizer101_table($vars) {
+  $rows = array();
+  $link_options = array(
+    'attributes' => array(
+      'target' => '_blank',
+      'rel' => 'nofollow',
+    ),
+    'external' => TRUE,
+  );
+
+  foreach ($vars['items'] as $item) {
+    $row = array();
+    $affiliate_link = $item['deepLink'];
+    $logo_image = theme('image', array('path' => $item['merchant']['logoUrl'], 'alt' => $item['merchant']['name']));
+    $logo_with_link = l($logo_image, $affiliate_link, array_merge($link_options, array('html' => TRUE)));
+    $row['data'][] = array(
+      'data' => $logo_with_link,
+      'class' => array('monetizer101-merchant-logo'),
+    );
+
+    $row['data'][] = array(
+      'data' => l($item['name'], $affiliate_link, $link_options),
+      'class' => array('monetizer101-product-name'),
+    );
+
+    $row['data'][] = array(
+      'data' => l('£' . $item['salePrice'], $affiliate_link, $link_options),
+      'class' => array('monetizer101-product-price'),
+    );
+
+    $row['data'][] = array(
+      'data' => l(t('Buy Now'), $affiliate_link, $link_options),
+      'class' => array('monetizer101-product-buy-now'),
+    );
+
+    $rows[] = $row;
+  }
+  return theme('table', array('rows' => $rows));
+}
+
+/**
+ * Retrieve items from the m101 API for a given a node.
+ *
+ * @param object $node
+ *   The node object to search for.
+ *
+ * @return array
+ *   An array of items returned by m101.
+ */
+function monetizer101_get_items($node) {
+  $cid = 'monetizer_101:results:' . $node->nid;
+
+  // Statically cache results in case the function is called twice on a page.
+  $items = &drupal_static($cid, NULL);
+  if (!is_null($items)) {
+    return $items->data;
+  }
+  // Get from Cache, if available.
+  $items = cache_get($cid);
+  if ($items) {
+    return $items->data;
+  }
+
+  $product_name_value = field_get_items('node', $node, variable_get('monetizer101_product_name_field_' . $node->type, ''));
+  if (empty($product_name_value) || empty($product_name_value[0]['value'])) {
+    return array();
+  }
+  $product_name = $product_name_value[0]['value'];
+
+  $price_range = '';
+  $price_value = field_get_items('node', $node, variable_get('monetizer101_price_field_' . $node->type, ''));
+  if (!empty($price_value) && !empty($price_value[0]['value'])) {
+    $price = $price_value[0]['value'];
+    $range = $price * variable_get('monetizer101_price_range', 0.3);
+    $price_range = ($price - $range) . '-' . ($price + $range);
+  }
+
+  // Grab the "full" limit (so we get all results back at once).
+  $limit = variable_get('monetizer101_full_listing_limit', 10);
+  $items = monetizer101_get_api_response($product_name, $price_range, $limit);
+
+  cache_set('monetizer_101:results:' . $node->nid, $items, 'cache', CACHE_TEMPORARY);
+
+  return $items;
+}
+
+/**
+ * Perform a lookup on the Monetizer101 API.
+ *
+ * @param string $name
+ *   The name value to query for.
+ * @param string $price
+ *   The price limit to search for, in the format <min-price>-<max-price>.
+ * @param int $limit
+ *   The number of items to search for.
+ *
+ * @return array
+ *   An array of objects for each m101 result.
+ *
+ * @See http://docs.monetizer101.com/api/rest/v3.0/api.html#!/default/get_widgets_search_products_currency_language
+ */
+function monetizer101_get_api_response($name, $price, $limit) {
+  $results = array();
+
+  $api_url = variable_get('monetizer101_api_url', '');
+  $api_key = variable_get('monetizer101_api_key', '');
+  if (empty($api_url) || empty($api_key)) {
+    return $results;
+  }
+
+  $query = array(
+    'name' => $name,
+    'price' => $price,
+    'limit' => $limit,
+  );
+  if (variable_get('monetizer101_group_results')) {
+    $query['group'] = variable_get('monetizer101_group_results');
+  }
+
+  $url = url($api_url, array('query' => $query, 'external' => TRUE));
+  $options = array(
+    'headers' => array(
+      'Accept' => 'application/json',
+      'x-api-key' => $api_key,
+    ),
+  );
+  $request = drupal_http_request($url, $options);
+
+  if ($request->code == 200 && !empty($request->data)) {
+    $results = drupal_json_decode($request->data);
+  }
+
+  return $results;
+}
