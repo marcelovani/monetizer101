@@ -139,7 +139,7 @@ function monetizer101_field_extra_fields() {
           'monetizer101_summary' => array(
             'label' => t('Monetizer101 Results Summary'),
             'description' => t('Displays the top @count results, and a link to the full result set.', array(
-              '@count' => variable_get('moetizer101_summary_limit', 4)
+              '@count' => variable_get('monetizer101_summary_limit', 4)
             )),
             'weight' => 0,
           ),
@@ -225,7 +225,7 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
     $view_all_link = '';
 
     // Only show link if there are more results to be seen there.
-    if (count($items) > variable_get('moetizer101_summary_limit', 4)) {
+    if (count($items) > variable_get('monetizer101_summary_limit', 4)) {
       $view_all_link = monetizer101_generate_full_link(t('View All Offers'));
     }
 
@@ -243,7 +243,7 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
         '#theme' => 'monetizer101_summary',
         '#table' => array(
           '#theme' => 'monetizer101_table',
-          '#items' => array_splice($items, 0, variable_get('moetizer101_summary_limit', 4)),
+          '#items' => array_splice($items, 0, variable_get('monetizer101_summary_limit', 4)),
         ),
         '#view_all_link' => $view_all_link,
       );
