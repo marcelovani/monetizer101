@@ -139,8 +139,7 @@ function monetizer101_field_extra_fields() {
           'monetizer101_summary' => array(
             'label' => t('Monetizer101 Results Summary'),
             'description' => t('Displays the top @count results, and a link to the full result set.', array(
-              '@count',
-              variable_get('moetizer101_summary_limit', 4)
+              '@count' => variable_get('moetizer101_summary_limit', 4)
             )),
             'weight' => 0,
           ),
@@ -154,7 +153,7 @@ function monetizer101_field_extra_fields() {
       // hide field by default
       $fields = array(
         'monetizer101_product_name_field_' . $node->type,
-        'monetizer101_price_field_' . $node->type, 0,
+        'monetizer101_price_field_' . $node->type,
       );
       foreach ($fields as $field) {
         _monetizer101_hide_new_extra_field('node', $node->type, $field);
@@ -189,8 +188,8 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
     if (!isset($settings['extra_fields']['display'][$field_name][$view_mode])) {
       $settings_updated = TRUE;
       $settings['extra_fields']['display'][$field_name][$view_mode] = array(
-        'weight' => 100,
         'visible' => FALSE,
+        'weight' => 0,
       );
     }
   }
