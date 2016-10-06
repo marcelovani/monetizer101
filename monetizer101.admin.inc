@@ -61,5 +61,21 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  $form['monetizer101_group_results'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Group results'),
+    '#description' => t('Field to use for grouping. The parameter is in the form <group-field> or <group-field>:<max-matches> where <group-field> is one of {\'merchant\',\'category\'} and <max-matches> is a numeric value. There is no default value.'),
+    '#default_value' => variable_get('monetizer101_group_results', 'merchant:1'),
+    '#required' => TRUE,
+  );
+
+  $form['monetizer101_sort_results'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Sort results'),
+    '#description' => t('Field to use for sorting. The parameter is in the form <sort-field> or <sort-field>:<sort-order> where <sort-field> is one of {\'price\',\'percentoff\'} while <sort-order> is one of {\'asc\',\'desc\'}. Defaults values are \'price\' and \'asc\'. For example: \'percentoff\' or \'price:desc\'.'),
+    '#default_value' => variable_get('monetizer101_sort_results', 'price:asc'),
+    '#required' => TRUE,
+  );
+
   return system_settings_form($form);
 }

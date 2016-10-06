@@ -421,6 +421,9 @@ function monetizer101_get_api_response($name, $price, $limit) {
   if (variable_get('monetizer101_group_results')) {
     $query['group'] = variable_get('monetizer101_group_results');
   }
+  if (variable_get('monetizer101_sort_results')) {
+    $query['sort'] = variable_get('monetizer101_sort_results');
+  }
 
   $url = url($api_url, array('query' => $query, 'external' => TRUE));
   $options = array(
