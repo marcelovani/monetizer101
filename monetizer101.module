@@ -264,12 +264,10 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
       );
     }
 
-    if (!empty($items)) {
-      $best_deals_link = monetizer101_generate_full_link(t('Best Deals'));
-      $node->content['monetizer101_best_deals_link'] = array(
-        '#markup' => $best_deals_link,
-      );
-    }
+    $best_deals_link = monetizer101_generate_full_link(t('Best Deals'));
+    $node->content['monetizer101_best_deals_link'] = array(
+      '#markup' => $best_deals_link,
+    );
   }
 }
 
