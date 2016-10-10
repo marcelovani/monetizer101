@@ -21,19 +21,43 @@
  *
  */
 function monetizer101_admin_settings($form, &$form_state) {
-  $form['monetizer101_api_key'] = array(
+
+  $form['monetizer101_shop_id'] = array(
     '#type' => 'textfield',
-    '#title' => t('Api Key'),
-    '#description' => t('Api key to connect to monetizer101'),
-    '#default_value' => variable_get('monetizer101_api_key', ''),
+    '#title' => t('Shop ID'),
+    '#description' => t('Your Monetizer101 shop ID.'),
+    '#default_value' => variable_get('monetizer101_shop_id', ''),
     '#required' => TRUE,
   );
 
-  $form['monetizer101_api_url'] = array(
+  $form['monetizer101_currency_code'] = array(
     '#type' => 'textfield',
-    '#title' => t('Api url'),
-    '#description' => t('Api url to connect to monetizer101'),
-    '#default_value' => variable_get('monetizer101_api_url', ''),
+    '#title' => t('Currency Code'),
+    '#description' => t('Set the default currency code.  Note if geolocation is turned on this will override it (when available).'),
+    '#default_value' => variable_get('monetizer101_currency_code', ''),
+    '#required' => TRUE,
+  );
+
+  $form['monetizer101_language_code'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Language Code'),
+    '#description' => t('Set the default language code.  Note if geolocation is turned on this will override it (when available).'),
+    '#default_value' => variable_get('monetizer101_language_code', 'en'),
+    '#required' => TRUE,
+  );
+
+  $form['monetizer101_geolocation'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Geolocation'),
+    '#description' => t('Enable Monetizer101 geodetection.'),
+    '#default_value' => variable_get('monetizer101_geolocation', TRUE),
+  );
+
+  $form['monetizer101_template_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Template ID'),
+    '#description' => t('Set the widget template id (grab this from the generated json config).'),
+    '#default_value' => variable_get('monetizer101_template_id', ''),
     '#required' => TRUE,
   );
 
@@ -61,20 +85,26 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['monetizer101_group_results'] = array(
+  $form['monetizer101_merchant_number'] = array(
     '#type' => 'textfield',
-    '#title' => t('Group results'),
-    '#description' => t('Field to use for grouping. The parameter is in the form <group-field> or <group-field>:<max-matches> where <group-field> is one of {\'merchant\',\'category\'} and <max-matches> is a numeric value. There is no default value.'),
-    '#default_value' => variable_get('monetizer101_group_results', 'merchant:1'),
-    '#required' => TRUE,
+    '#title' => t('Merchant Number'),
+    '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
+    '#default_value' => variable_get('monetizer101_merchant_number', ''),
   );
 
-  $form['monetizer101_sort_results'] = array(
+  $form['monetizer101_sorting_field'] = array(
     '#type' => 'textfield',
-    '#title' => t('Sort results'),
-    '#description' => t('Field to use for sorting. The parameter is in the form <sort-field> or <sort-field>:<sort-order> where <sort-field> is one of {\'price\',\'percentoff\'} while <sort-order> is one of {\'asc\',\'desc\'}. Defaults values are \'price\' and \'asc\'. For example: \'percentoff\' or \'price:desc\'.'),
-    '#default_value' => variable_get('monetizer101_sort_results', 'price:asc'),
-    '#required' => TRUE,
+    '#title' => t('Sorting Field'),
+    '#description' => t('Field to use for sorting.'),
+    '#default_value' => variable_get('monetizer101_sorting_field', 'PRICE'),
+    '#required' => FALSE,
+  );
+
+  $form['monetizer101_sorting_order'] = array(
+    '#type' => 'select',
+    '#title' => t('Sorting Order'),
+    '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
+    '#default_value' => variable_get('monetizer101_sorting_order', 'asc'),
   );
 
   return system_settings_form($form);
