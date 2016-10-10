@@ -306,10 +306,8 @@ function monetizer101_get_widget_config($node, $limit = 0) {
     return FALSE;
   }
 
-  $price = $price_value[0]['value'];
-  $range = $price * variable_get('monetizer101_price_range', 0.3);
-  $config['priceMin'] = $price - $range;
-  $config['priceMax'] = $price + $range;
+  $config['price'] = $price_value[0]['value'];
+  $config['delta'] = variable_get('monetizer101_price_range', '30');
 
   $config['shopId'] = variable_get('monetizer101_shop_id', '');
   $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
@@ -327,8 +325,6 @@ function monetizer101_get_widget_config($node, $limit = 0) {
   // leave them blank).
   $config['categoryIds'] = '';
   $config['merchantIds'] = '';
-  $config['price'] = '';
-  $config['delta'] = '';
   $config['merchantFilter'] = FALSE;
   $config['sid'] = '';
 

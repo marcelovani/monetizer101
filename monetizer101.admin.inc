@@ -64,8 +64,8 @@ function monetizer101_admin_settings($form, &$form_state) {
   $form['monetizer101_price_range'] = array(
     '#type' => 'textfield',
     '#title' => t('Price Range'),
-    '#description' => t('Price range to fetch relevant result. e.g 0.3  is 30% up and down of product price'),
-    '#default_value' => variable_get('monetizer101_price_range', '0.3'),
+    '#description' => t('Price range to fetch relevant result in percentage.  E.g. 30 is 30% (if price is £100 then range will be £70-£130).'),
+    '#default_value' => variable_get('monetizer101_price_range', '30'),
     '#required' => TRUE,
   );
 
