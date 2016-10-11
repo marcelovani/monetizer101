@@ -309,7 +309,7 @@ function monetizer101_get_widget_config($node, $limit = 0) {
 
   $config['shopId'] = variable_get('monetizer101_shop_id', '');
   $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
-  $config['isoLanguageCode'] = variable_get('monetizer101_currency_code', 'en');
+  $config['isoLanguageCode'] = variable_get('monetizer101_language_code', 'en');
   $config['geolocation'] = (bool) variable_get('monetizer101_geolocation', TRUE);
   $config['templateId'] = variable_get('monetizer101_template_id', '');
   $config['sortingField'] = variable_get('monetizer101_sorting_field', 'PRICE');
@@ -319,11 +319,19 @@ function monetizer101_get_widget_config($node, $limit = 0) {
     $config['limit'] = $limit;
   }
 
+  $config['merchantFilter'] = FALSE;
+  
+  $merchant_number = variable_get('monetizer101_merchant_number', '');
+  if (!empty($merchant_number)) {
+    $config['merchantFilter'] = TRUE;
+    $config['merchantNumber'] = $merchant_number;
+  }
+
   // The parameters below are required but not currently implemented (so we
   // leave them blank).
   $config['categoryIds'] = '';
   $config['merchantIds'] = '';
-  $config['merchantFilter'] = FALSE;
+
   $config['sid'] = '';
 
   return $config;
