@@ -6,7 +6,7 @@
  */
 
 // Store the HTML ID as a constant, as we need it for fragment linking.
-define('MONETIZER101_FULL_RESULTS_HTML_ID', 'monetizer101-full-results');
+define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
 /**
  * Implements hook_menu().
@@ -320,7 +320,7 @@ function monetizer101_get_widget_config($node, $limit = 0) {
   }
 
   $config['merchantFilter'] = FALSE;
-  
+
   $merchant_number = variable_get('monetizer101_merchant_number', '');
   if (!empty($merchant_number)) {
     $config['merchantFilter'] = TRUE;
@@ -348,7 +348,7 @@ function monetizer101_get_widget_config($node, $limit = 0) {
  *   A string containing the HTML for the link.
  */
 function monetizer101_generate_full_link($text) {
-  return l($text, current_path(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
+  return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
 }
 
 /**
@@ -365,7 +365,6 @@ function monetizer101_block_view($delta = '') {
             '#theme' => 'monetizer101_widget',
             '#config' => $config,
             '#widget_name' => 'price_comparison_full',
-            '#prefix' => '<div id="' . MONETIZER101_FULL_RESULTS_HTML_ID . '"></div>',
           );
         }
 
