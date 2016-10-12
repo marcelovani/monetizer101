@@ -239,7 +239,7 @@ function monetizer101_block_info() {
 function monetizer101_node_view($node, $view_mode, $langcode) {
   if (variable_get('monetizer101_product_name_field_' . $node->type, 0) && $view_mode == 'full') {
 
-    $limit = variable_get('moetizer101_summary_limit', '4');
+    $limit = variable_get('monetizer101_summary_limit', '4');
     $config = monetizer101_get_widget_config($node, $limit);
 
     if (!$config) {

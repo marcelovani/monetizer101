@@ -77,11 +77,11 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['moetizer101_summary_limit'] = array(
+  $form['monetizer101_summary_limit'] = array(
     '#type' => 'textfield',
     '#title' => t('summary Listing Limit'),
     '#description' => t('Limit on number of result for summary listing'),
-    '#default_value' => variable_get('moetizer101_summary_limit', '4'),
+    '#default_value' => variable_get('monetizer101_summary_limit', '4'),
     '#required' => TRUE,
   );
 

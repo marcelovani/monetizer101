@@ -17,7 +17,7 @@ function monetizer101_uninstall() {
   variable_del('monetizer101_template_id');
   variable_del('monetizer101_price_range');
   variable_del('monetizer101_full_listing_limit');
-  variable_del('moetizer101_summary_limit');
+  variable_del('monetizer101_summary_limit');
   variable_del('monetizer101_merchant_number');
   variable_del('monetizer101_sorting_field');
   variable_del('monetizer101_sorting_order');
