@@ -21,6 +21,15 @@ function monetizer101_menu() {
     'file' => 'monetizer101.admin.inc',
   );
 
+  $items['admin/config/system/monetizer101/monetizer101-block'] = array(
+    'title' => 'Monetizer101 Block',
+    'description' => 'Add Monetizer101 script.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('monetizer101_admin_settings'),
+    'access arguments' => array('edit monetizer101 block widget'),
+    'file' => 'monetizer101.admin.block.inc',
+  );
+
   return $items;
 }
 
@@ -32,6 +41,10 @@ function monetizer101_permission() {
     'administer monetizer101 settings' => array(
       'title' => t('Administer monetizer101 settings'),
       'description' => t('Administer monetizer101 settings.'),
+    ),
+    'edit monetizer101 block widget' => array(
+      'title' => t('Edit monetizer101 block widget'),
+      'description' => t('Edit monetizer101 block widget.'),
     ),
   );
 }
@@ -227,6 +240,10 @@ function monetizer101_block_info() {
     'info' => t('Monetizer101 Full'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
   );
+  $blocks['monetizer101_block'] = array(
+    'info' => t('Monetizer101 Block'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
   return $blocks;
 }
 
@@ -355,21 +372,33 @@ function monetizer101_generate_full_link($text) {
  * Implements hook_block_view().
  */
 function monetizer101_block_view($delta = '') {
-  if ($delta == 'monetizer101_full') {
-    if (arg(0) == 'node' && is_numeric(arg(1))) {
-      $node = node_load(arg(1));
-      if ($node) {
-        $config = monetizer101_get_widget_config($node, variable_get('monetizer101_full_listing_limit', '10'));
-        if ($config) {
-          $block['content'] = array(
-            '#theme' => 'monetizer101_widget',
-            '#config' => $config,
-            '#widget_name' => 'price_comparison_full',
-          );
+  $block = array();
+  switch ($delta) {
+    case 'monetizer101_full':
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $node = node_load(arg(1));
+        if ($node) {
+          $config = monetizer101_get_widget_config($node, variable_get('monetizer101_full_listing_limit', '10'));
+          if ($config) {
+            $block['content'] = array(
+              '#theme' => 'monetizer101_widget',
+              '#config' => $config,
+              '#widget_name' => 'price_comparison_full',
+            );
+          }
         }
-
-        return $block;
       }
-    }
+      break;
+
+    case 'monetizer101_block':
+      if (variable_get('bikesetc_m101_enabled') == 0) {
+        return;
+      }
+      $block['content'] = variable_get('bikesetc_m101_script');
+      break;
+
+    default:
+      break;
   }
+  return $block;
 }
