@@ -25,7 +25,7 @@ function monetizer101_admin_settings($form, &$form_state) {
   $form['monetizer101_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enabled'),
-    '#default_value' => variable_get('monetizer101_enabled', 1),
+    '#default_value' => variable_get('monetizer101_enabled', 0),
     '#description' => 'Uncheck to stop Monetizer block showing.',
   );
 
