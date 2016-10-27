@@ -394,7 +394,7 @@ function monetizer101_block_view($delta = '') {
       if (variable_get('monetizer101_enabled') == 0) {
         return;
       }
-      $block['content'] = variable_get('monetizer101_enabled');
+      $block['content'] = variable_get('monetizer101_script');
       break;
 
     default:
