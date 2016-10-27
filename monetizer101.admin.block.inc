@@ -2,7 +2,7 @@
 
 /**
  * @file
- * ReevooMark administration pages.
+ * Monetizer101 block administration pages.
  */
 
 /**
