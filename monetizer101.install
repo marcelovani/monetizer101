@@ -21,6 +21,8 @@ function monetizer101_uninstall() {
   variable_del('monetizer101_merchant_number');
   variable_del('monetizer101_sorting_field');
   variable_del('monetizer101_sorting_order');
+  variable_del('monetizer101_block_enabled');
+  variable_del('monetizer101_script');
 
   foreach (node_type_get_types() as $machine_name => $type) {
     variable_del('monetizer101_product_name_field_' . $machine_name);
