@@ -31,7 +31,7 @@ function monetizer101_admin_settings($form, &$form_state) {
 
   $form['monetizer101_script'] = array(
     '#type' => 'textarea',
-    '#title' => t('M101 Widget script'),
+    '#title' => t('M101 Sidebar script'),
     '#default_value' => variable_get('monetizer101_script', ''),
     '#description' => t("The maximum number of links to display in the block."),
   );
