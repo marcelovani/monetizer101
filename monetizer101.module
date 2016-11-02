@@ -87,7 +87,20 @@ function monetizer101_add_js() {
   static $done;
   if (!$done) {
     $done = TRUE;
-    $js = '(function () { var s = document.createElement("script"); s.type = "text/javascript"; s.async = true; s.src = "//link.monetizer101.com/widget/search-2.0.3/js/load.min.js"; s.onload = function () { MONETIZER101SEARCH.init() }; var x = document.getElementsByTagName("script")[0]; x.parentNode.insertBefore(s, x); })();';
+    $js = '
+    (function () {
+        var u = "http://do.expertreviews.co.uk";
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.async = true;
+        s.src = u + "/widget/search-2.0.3/js/load.min.js";
+        s.onload = function () {
+            MONETIZER101SEARCH.init(u);
+        };
+        var x = document.getElementsByTagName("script")[0];
+        x.parentNode.insertBefore(s, x);
+    })();
+    ';
     drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
   }
 
