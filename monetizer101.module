@@ -75,7 +75,6 @@ function theme_monetizer101_widget($vars) {
     'data-config' => drupal_json_encode($vars['config']),
   );
 
-  monetizer101_add_js();
   return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attibutes) . '></div>';
 
 }
@@ -267,6 +266,7 @@ function monetizer101_block_info() {
  * monetizer101_best_deals_link extra fields.
  */
 function monetizer101_node_view($node, $view_mode, $langcode) {
+  monetizer101_add_js();
   if (variable_get('monetizer101_product_name_field_' . $node->type, 0) && $view_mode == 'full') {
 
     $limit = variable_get('monetizer101_summary_limit', '4');
