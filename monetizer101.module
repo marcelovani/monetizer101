@@ -61,6 +61,12 @@ function monetizer101_theme($existing, $type, $theme, $path) {
 
       ),
     ),
+    'monetizer101_widget_sticky' => array(
+      'variables' => array(
+        'config' => array(),
+        'widget_name' => '',
+      ),
+    ),
   );
 }
 
@@ -76,6 +82,20 @@ function theme_monetizer101_widget($vars) {
   );
   return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attibutes) . '></div>';
 
+}
+
+/**
+ * Theme callback for creating a sticky m101 widget.
+ */
+function theme_monetizer101_widget_sticky($vars) {
+  // Use the widget name as the sid for now.
+  $vars['config']['sid'] = $vars['widget_name'];
+  $vars['config']['templateId'] = 1754; // @todo Change this once we have an interface to add multiple templates.
+
+  $url = 'https://link.monetizer101.com/widget/search-2.0.2/templates/1/index.html';
+  $url = url($url, array('query' => $vars['config']));
+
+  return "<iframe frameborder=\"0\" width=\"50%\" src=\"$url\"></iframe>";
 }
 
 /**
@@ -255,6 +275,10 @@ function monetizer101_block_info() {
     'info' => t('Monetizer101 Block'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
   );
+  $blocks['monetizer101_sticky'] = array(
+    'info' => t('Monetizer101 Sticky'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
   return $blocks;
 }
 
@@ -415,6 +439,23 @@ function monetizer101_block_view($delta = '') {
         return;
       }
       $block['content'] = variable_get('monetizer101_script');
+      break;
+
+    case 'monetizer101_sticky':
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $node = node_load(arg(1));
+        if ($node) {
+          $config = monetizer101_get_widget_config($node, variable_get('monetizer101_full_listing_limit', '10'));
+          if ($config) {
+            $block['content'] = array(
+              '#theme' => 'monetizer101_widget_sticky',
+              '#config' => $config,
+              '#widget_name' => 'price_comparison_sticky',
+            );
+          }
+          return $block;
+        }
+      }
       break;
 
     default:
