@@ -451,6 +451,11 @@ function monetizer101_block_view($delta = '') {
               '#theme' => 'monetizer101_widget_sticky',
               '#config' => $config,
               '#widget_name' => 'price_comparison_sticky',
+              '#attached' => array(
+                  'js' => array(
+                    drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js',
+                ),
+              ),
             );
           }
           return $block;
