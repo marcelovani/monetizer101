@@ -476,6 +476,8 @@ function monetizer101_get_widget_config($node, $block_name) {
 
   $config['price'] = $price_value[0]['value'];
   $config['delta'] = variable_get($block_name . '_price_range', '30');
+  // Use retail price to retrieve more accurate results.
+  $config['priceType'] = 'RETAIL_PRICE';
 
   $config['shopId'] = variable_get('monetizer101_shop_id', '');
   $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
