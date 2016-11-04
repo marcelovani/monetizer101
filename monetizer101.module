@@ -22,7 +22,7 @@ function monetizer101_menu() {
   );
 
   $items['admin/config/system/monetizer101/monetizer101-block'] = array(
-    'title' => 'Monetizer101 Block',
+    'title' => 'Monetizer101 Sidebar',
     'description' => 'Add Monetizer101 script.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('monetizer101_admin_settings'),
@@ -251,7 +251,7 @@ function monetizer101_block_info() {
     'info' => t('Monetizer101 Full'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
   );
-  $blocks['monetizer101_block'] = array(
+  $blocks['monetizer101_sidebar'] = array(
     'info' => t('Monetizer101 Block'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
   );
@@ -410,7 +410,7 @@ function monetizer101_block_view($delta = '') {
       }
       break;
 
-    case 'monetizer101_block':
+    case 'monetizer101_sidebar':
       if (variable_get('monetizer101_block_enabled') == 0) {
         return;
       }
