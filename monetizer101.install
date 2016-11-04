@@ -14,13 +14,6 @@ function monetizer101_uninstall() {
   variable_del('monetizer101_currency_code');
   variable_del('monetizer101_language_code');
   variable_del('monetizer101_geolocation');
-  variable_del('monetizer101_template_id');
-  variable_del('monetizer101_price_range');
-  variable_del('monetizer101_full_listing_limit');
-  variable_del('monetizer101_summary_limit');
-  variable_del('monetizer101_merchant_number');
-  variable_del('monetizer101_sorting_field');
-  variable_del('monetizer101_sorting_order');
   variable_del('monetizer101_block_enabled');
   variable_del('monetizer101_script');
 
@@ -29,4 +22,29 @@ function monetizer101_uninstall() {
     variable_del('monetizer101_price_field_' . $machine_name);
   }
 
+  $blocks = _monetizer101_node_blocks();
+  foreach ($blocks as $name => $block) {
+    variable_del($name . '_template_id');
+    variable_del($name . '_price_range');
+    variable_del($name . '_merchant_number');
+    variable_del($name . '_sorting_field');
+    variable_del($name . '_sorting_order');
+  }
+
+}
+
+/**
+ * Remove unused monetizer101 variables.
+ */
+function monetizer101_update_7100() {
+  variable_del('monetizer101_template_id');
+  variable_del('monetizer101_price_range');
+  variable_del('monetizer101_full_listing_limit');
+  variable_del('monetizer101_summary_limit');
+  variable_del('monetizer101_merchant_number');
+  variable_del('monetizer101_sorting_field');
+  variable_del('monetizer101_sorting_order');
+  variable_del('monetizer101_group_results');
+  variable_del('monetizer101_api_key');
+  variable_del('monetizer101_api_url');
 }
