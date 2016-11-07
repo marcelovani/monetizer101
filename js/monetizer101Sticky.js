@@ -5,18 +5,29 @@
     attach: function() {
       var sticky = {},
       stickyBlock = document.getElementById('block-monetizer101-monetizer101-sticky'),
-      stickyNav = document.getElementById('header-group'),
       iframe= '',
-      height = 70,
+      height = 60,
       startPosition = 0,
       currentPosition = 0,
       moveAmount = 0;
 
+      // if the site has a sticky header account it's ID can be defined at the site level and accounted for here
+      if(typeof Drupal.settings.dennisJs.stickyNavID !== 'undefined') {
+        var stickyNav = document.getElementById(Drupal.settings.dennisJs.stickyNavID);
+      }
+
       // update required elements based on amount user has scrolled
       sticky.updateMove = function(amount) {
         iframe.style.top = -height + amount + 'px';
-        stickyNav.style.top = amount + 'px';
         document.body.style.marginTop = amount + 'px';
+        if (stickyNav) {
+          if (amount >= 0) {
+            stickyNav.style.top = amount + 'px';
+          }
+          else {
+            stickyNav.style.top = 0;
+          }
+        }
       };
 
       sticky.scrollMoveIframe = function() {
@@ -27,6 +38,7 @@
         if (moveAmount >= height) {
           sticky.updateMove(height);
           removeEventListener('scroll', sticky.scrollMoveIframe);
+          document.body.classList.add('monetizer101-sticky');
         }
         // otherwise update elements in sync with user's scroll
         else {
@@ -54,7 +66,7 @@
           // set start position & add scroll event listener
           startPosition = document.documentElement.scrollTop || document.body.scrollTop;
           addEventListener('scroll', sticky.scrollMoveIframe);
-        }, 7000);
+        }, 5000);
       };
 
       return sticky.init();
