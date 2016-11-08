@@ -374,7 +374,7 @@ function monetizer101_block_view($delta = '') {
           $block['content'] = array(
             '#theme' => 'monetizer101_widget',
             '#config' => $config,
-            '#widget_name' => 'price_comparison_full',
+            '#widget_name' => $delta,
           );
         }
       }
