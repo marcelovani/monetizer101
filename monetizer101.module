@@ -206,7 +206,6 @@ function monetizer101_field_extra_fields() {
   return $extra;
 }
 
-
 /**
  * Utility function to hide any newly created extra_fields.
  *
@@ -247,16 +246,154 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
  * Full listing needs to be a block so it can be placed in a region.
  */
 function monetizer101_block_info() {
-  $blocks['monetizer101_full'] = array(
-    'info' => t('Monetizer101 Full'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-  );
+
+  $blocks = _monetizer101_node_blocks();
+
   $blocks['monetizer101_sidebar'] = array(
-    'info' => t('Monetizer101 Block'),
+    'info' => t('Monetizer101 Sidebar'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
   );
   return $blocks;
 }
+
+/**
+ * Define blocks that should appear on node pages.
+ *
+ * @return array
+ *   An array of blocks, compatible with hook_block_info().
+ */
+function _monetizer101_node_blocks() {
+  $blocks['monetizer101_full'] = array(
+    'info' => t('Monetizer101 Full'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  $blocks['monetizer101_summary'] = array(
+    'info' => t('Monetizer101 Summary'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  return $blocks;
+}
+
+
+/**
+ * Implements hook_block_configure().
+ */
+function monetizer101_block_configure($delta = '') {
+  $form = array();
+
+  // Get all the blocks defined by this module.
+  $blocks = _monetizer101_node_blocks();
+
+  if (isset($blocks[$delta])) {
+    $form = monetizer101_block_settings_form($delta);
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function monetizer101_block_save($delta = '', $edit = array()) {
+  // Get all the blocks defined by this module.
+  $blocks = _monetizer101_node_blocks();
+
+  if (isset($blocks[$delta])) {
+    foreach ($edit as $name => $value) {
+      // If the param name starts with the block name,
+      // we know it's a m101 setting.
+      if (strpos($name, $delta) === 0) {
+        variable_set($name, $value);
+      }
+    }
+  }
+}
+
+/**
+ * Generate a m101 settings form for the block.
+ *
+ * @param string $block_name
+ *   The name of the block.
+ *
+ * @return array
+ *   The generated form array.
+ */
+function monetizer101_block_settings_form($block_name) {
+  $form = array(
+    'monetizer101_settings' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Monetizer101 Settings'),
+      $block_name . '_template_id' => array(
+        '#type' => 'textfield',
+        '#title' => t('Template ID'),
+        '#default_value' => variable_get($block_name . '_template_id', ''),
+      ),
+      $block_name . '_price_range' => array(
+        '#type' => 'textfield',
+        '#title' => t('Price Range'),
+        '#description' => t('Price range to fetch relevant result in percentage.  E.g. 30 is 30% (if price is £100 then range will be £70-£130).'),
+        '#default_value' => variable_get($block_name . '_price_range', ''),
+      ),
+      $block_name . '_merchant_number' => array(
+        '#type' => 'textfield',
+        '#title' => t('Merchant number'),
+        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
+        '#default_value' => variable_get($block_name . '_merchant_number', ''),
+      ),
+      $block_name . '_sorting_field' => array(
+        '#type' => 'textfield',
+        '#title' => t('Field to use for sorting.'),
+        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
+        '#default_value' => variable_get($block_name . '_sorting_field', 'PRICE'),
+      ),
+      $block_name . '_sorting_order' => array(
+        '#type' => 'select',
+        '#title' => t('Sorting Order'),
+        '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
+        '#default_value' => variable_get($block_name . '_sorting_order', 'asc'),
+      ),
+    ),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function monetizer101_block_view($delta = '') {
+  $block = array();
+
+  $blocks = _monetizer101_node_blocks();
+
+  if (isset($blocks[$delta])) {
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if ($node) {
+        $config = monetizer101_get_widget_config($node, $delta);
+        if ($config) {
+          $block['content'] = array(
+            '#theme' => 'monetizer101_widget',
+            '#config' => $config,
+            '#widget_name' => $delta,
+          );
+        }
+      }
+    }
+  }
+  switch ($delta) {
+    case 'monetizer101_sidebar':
+      if (variable_get('monetizer101_block_enabled') == 0) {
+        return;
+      }
+      $block['content'] = variable_get('monetizer101_script');
+      break;
+
+    default:
+      break;
+  }
+  return $block;
+}
+
 
 /**
  * Implements hook_preprocess_page().
@@ -293,12 +430,8 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
     }
 
     if ($show_summary) {
-      $node->content['monetizer101_summary'] = array(
-        '#theme' => 'monetizer101_widget',
-        '#config' => $config,
-        '#widget_name' => 'price_comparison_summary',
-        '#suffix' => monetizer101_generate_full_link(t('View All Offers')),
-      );
+      $block = monetizer101_block_view('monetizer101_summary');
+      $node->content['monetizer101_summary'] = $block['content'];
     }
 
     $best_deals_link = monetizer101_generate_full_link(t('Best Deals'));
@@ -313,15 +446,15 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
  *
  * @param object $node
  *   The node object to use to generate the config.
- * @param int $limit
- *   (Optional) The number of items to limit, set to 0 for no limit.
+ * @param string $block_name
+ *   The name of the block.
  *
  * @return array|bool
  *   Either the generated config, or FALSE if config is unavailable
  *   (e.g. missing field values).  If FALSE you should avoid generating the
  *   widget.
  */
-function monetizer101_get_widget_config($node, $limit = 0) {
+function monetizer101_get_widget_config($node, $block_name) {
   $config = array();
 
   $product_name_field = variable_get('monetizer101_product_name_field_' . $node->type, '');
@@ -342,23 +475,21 @@ function monetizer101_get_widget_config($node, $limit = 0) {
   }
 
   $config['price'] = $price_value[0]['value'];
-  $config['delta'] = variable_get('monetizer101_price_range', '30');
+  $config['delta'] = variable_get($block_name . '_price_range', '30');
+  // Use retail price to retrieve more accurate results.
+  $config['priceType'] = 'RETAIL_PRICE';
 
   $config['shopId'] = variable_get('monetizer101_shop_id', '');
   $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
   $config['isoLanguageCode'] = variable_get('monetizer101_language_code', 'en');
   $config['geolocation'] = (bool) variable_get('monetizer101_geolocation', TRUE);
-  $config['templateId'] = variable_get('monetizer101_template_id', '');
-  $config['sortingField'] = variable_get('monetizer101_sorting_field', 'PRICE');
-  $config['sortingOrder'] = variable_get('monetizer101_sorting_order', 'asc');
-
-  if ($limit) {
-    $config['limit'] = $limit;
-  }
+  $config['templateId'] = variable_get($block_name . '_template_id', '');
+  $config['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
+  $config['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
 
   $config['merchantFilter'] = FALSE;
 
-  $merchant_number = variable_get('monetizer101_merchant_number', '');
+  $merchant_number = variable_get($block_name . '_merchant_number', '');
   if (!empty($merchant_number)) {
     $config['merchantFilter'] = TRUE;
     $config['merchantNumber'] = $merchant_number;
@@ -386,39 +517,4 @@ function monetizer101_get_widget_config($node, $limit = 0) {
  */
 function monetizer101_generate_full_link($text) {
   return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
-}
-
-/**
- * Implements hook_block_view().
- */
-function monetizer101_block_view($delta = '') {
-  $block = array();
-  switch ($delta) {
-    case 'monetizer101_full':
-      if (arg(0) == 'node' && is_numeric(arg(1))) {
-        $node = node_load(arg(1));
-        if ($node) {
-          $config = monetizer101_get_widget_config($node, variable_get('monetizer101_full_listing_limit', '10'));
-          if ($config) {
-            $block['content'] = array(
-              '#theme' => 'monetizer101_widget',
-              '#config' => $config,
-              '#widget_name' => 'price_comparison_full',
-            );
-          }
-        }
-      }
-      break;
-
-    case 'monetizer101_sidebar':
-      if (variable_get('monetizer101_block_enabled') == 0) {
-        return;
-      }
-      $block['content'] = variable_get('monetizer101_script');
-      break;
-
-    default:
-      break;
-  }
-  return $block;
 }
