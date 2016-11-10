@@ -54,6 +54,7 @@
         // wait for iframe to load (we don't have access to a proper callback unfortunately)
         setTimeout(function () {
           // set fixed position styles on block
+          stickyBlock.style.display = 'block';
           stickyBlock.style.overflow = 'hidden';
           stickyBlock.style.position = 'fixed';
           stickyBlock.style.top = -height + 'px';

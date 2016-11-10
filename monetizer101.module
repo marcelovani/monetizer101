@@ -61,7 +61,7 @@ function monetizer101_theme($existing, $type, $theme, $path) {
 
       ),
     ),
-    'monetizer101_widget_sticky' => array(
+    'monetizer101_widget_iframe' => array(
       'variables' => array(
         'config' => array(),
         'widget_name' => '',
@@ -87,10 +87,9 @@ function theme_monetizer101_widget($vars) {
 /**
  * Theme callback for creating a sticky m101 widget.
  */
-function theme_monetizer101_widget_sticky($vars) {
+function theme_monetizer101_widget_iframe($vars) {
   // Use the widget name as the sid for now.
   $vars['config']['sid'] = $vars['widget_name'];
-  $vars['config']['templateId'] = 1754; // @todo Change this once we have an interface to add multiple templates.
 
   $url = 'https://link.monetizer101.com/widget/search-2.0.2/templates/1/index.html';
   $url = url($url, array('query' => $vars['config']));
@@ -271,7 +270,7 @@ function monetizer101_block_info() {
 
   $blocks['monetizer101_block'] = array(
     'info' => t('Monetizer101 Block'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -285,15 +284,15 @@ function monetizer101_block_info() {
 function _monetizer101_node_blocks() {
   $blocks['monetizer101_full'] = array(
     'info' => t('Monetizer101 Full'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   $blocks['monetizer101_summary'] = array(
     'info' => t('Monetizer101 Summary'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   $blocks['monetizer101_sticky'] = array(
     'info' => t('Monetizer101 Sticky'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -413,8 +412,9 @@ function monetizer101_block_view($delta = '') {
       break;
     case 'monetizer101_sticky':
       if ($config) {
+        //$block['content']['#attached']['js'] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
         $block['content'] = array(
-          '#theme' => 'monetizer101_widget_sticky',
+          '#theme' => 'monetizer101_widget_iframe',
           '#config' => $config,
           '#widget_name' => 'price_comparison_sticky',
           '#attached' => array(
