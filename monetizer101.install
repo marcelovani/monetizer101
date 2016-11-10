@@ -45,6 +45,7 @@ function monetizer101_update_7100() {
   variable_del('monetizer101_sorting_field');
   variable_del('monetizer101_sorting_order');
   variable_del('monetizer101_group_results');
+  variable_del('monetizer101_sort_results');
   variable_del('monetizer101_api_key');
   variable_del('monetizer101_api_url');
 }
