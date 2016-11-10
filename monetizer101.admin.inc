@@ -22,7 +22,13 @@
  */
 function monetizer101_admin_settings($form, &$form_state) {
 
-  $form['monetizer101_shop_id'] = array(
+  $form['monetizer101'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Monetizer101 Global Settings'),
+    '#description' => t('For specific widget settings (such as templateID), please edit the block from the !block_config_page', array('!block_config_page' => l(t('block config page'), 'admin/structure/block'))),
+  );
+
+  $form['monetizer101']['monetizer101_shop_id'] = array(
     '#type' => 'textfield',
     '#title' => t('Shop ID'),
     '#description' => t('Your Monetizer101 shop ID.'),
@@ -30,7 +36,7 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['monetizer101_currency_code'] = array(
+  $form['monetizer101']['monetizer101_currency_code'] = array(
     '#type' => 'textfield',
     '#title' => t('Currency Code'),
     '#description' => t('Set the default currency code.  Note if geolocation is turned on this will override it (when available).'),
@@ -38,7 +44,7 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['monetizer101_language_code'] = array(
+  $form['monetizer101']['monetizer101_language_code'] = array(
     '#type' => 'textfield',
     '#title' => t('Language Code'),
     '#description' => t('Set the default language code.  Note if geolocation is turned on this will override it (when available).'),
@@ -46,65 +52,11 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['monetizer101_geolocation'] = array(
+  $form['monetizer101']['monetizer101_geolocation'] = array(
     '#type' => 'checkbox',
     '#title' => t('Geolocation'),
     '#description' => t('Enable Monetizer101 geodetection.'),
     '#default_value' => variable_get('monetizer101_geolocation', TRUE),
-  );
-
-  $form['monetizer101_template_id'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Template ID'),
-    '#description' => t('Set the widget template id (grab this from the generated json config).'),
-    '#default_value' => variable_get('monetizer101_template_id', ''),
-    '#required' => TRUE,
-  );
-
-  $form['monetizer101_price_range'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Price Range'),
-    '#description' => t('Price range to fetch relevant result in percentage.  E.g. 30 is 30% (if price is £100 then range will be £70-£130).'),
-    '#default_value' => variable_get('monetizer101_price_range', '30'),
-    '#required' => TRUE,
-  );
-
-  $form['monetizer101_full_listing_limit'] = array(
-    '#type' => 'textfield',
-    '#title' => t('full Listing Limit'),
-    '#description' => t('Limit on number of result to get for full listing'),
-    '#default_value' => variable_get('monetizer101_full_listing_limit', '10'),
-    '#required' => TRUE,
-  );
-
-  $form['monetizer101_summary_limit'] = array(
-    '#type' => 'textfield',
-    '#title' => t('summary Listing Limit'),
-    '#description' => t('Limit on number of result for summary listing'),
-    '#default_value' => variable_get('monetizer101_summary_limit', '4'),
-    '#required' => TRUE,
-  );
-
-  $form['monetizer101_merchant_number'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Merchant Number'),
-    '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
-    '#default_value' => variable_get('monetizer101_merchant_number', ''),
-  );
-
-  $form['monetizer101_sorting_field'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Sorting Field'),
-    '#description' => t('Field to use for sorting.'),
-    '#default_value' => variable_get('monetizer101_sorting_field', 'PRICE'),
-    '#required' => FALSE,
-  );
-
-  $form['monetizer101_sorting_order'] = array(
-    '#type' => 'select',
-    '#title' => t('Sorting Order'),
-    '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
-    '#default_value' => variable_get('monetizer101_sorting_order', 'asc'),
   );
 
   return system_settings_form($form);
