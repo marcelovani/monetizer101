@@ -58,13 +58,6 @@ function monetizer101_theme($existing, $type, $theme, $path) {
       'variables' => array(
         'config' => array(),
         'widget_name' => '',
-
-      ),
-    ),
-    'monetizer101_widget_iframe' => array(
-      'variables' => array(
-        'config' => array(),
-        'widget_name' => '',
       ),
     ),
   );
@@ -82,19 +75,6 @@ function theme_monetizer101_widget($vars) {
   );
   return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attibutes) . '></div>';
 
-}
-
-/**
- * Theme callback for creating a sticky m101 widget.
- */
-function theme_monetizer101_widget_iframe($vars) {
-  // Use the widget name as the sid for now.
-  $vars['config']['sid'] = $vars['widget_name'];
-
-  $url = 'https://link.monetizer101.com/widget/search-2.0.2/templates/1/index.html';
-  $url = url($url, array('query' => $vars['config']));
-
-  return "<iframe frameborder=\"0\" width=\"50%\" src=\"$url\"></iframe>";
 }
 
 /**
@@ -411,18 +391,9 @@ function monetizer101_block_view($delta = '') {
       $block['content'] = variable_get('monetizer101_script');
       break;
     case 'monetizer101_sticky':
+      // Attach sticky JS to block.
       if ($config) {
-        //$block['content']['#attached']['js'] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
-        $block['content'] = array(
-          '#theme' => 'monetizer101_widget_iframe',
-          '#config' => $config,
-          '#widget_name' => 'price_comparison_sticky',
-          '#attached' => array(
-            'js' => array(
-              drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js',
-            ),
-          ),
-        );
+        $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
       }
       break;
     default:
