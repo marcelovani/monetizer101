@@ -8,6 +8,9 @@
 // Store the HTML ID as a constant, as we need it for fragment linking.
 define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
+// Default widget base URL.
+define('MONETIZER101_DEFAULT_BASE_URL', 'https://link.monetizer101.com');
+
 /**
  * Implements hook_menu().
  */
@@ -86,7 +89,7 @@ function monetizer101_add_js() {
     $done = TRUE;
     $js = '
     (function () {
-        var u = "http://do.expertreviews.co.uk";
+        var u = "' . variable_get('monetizer101_url', MONETIZER101_DEFAULT_BASE_URL) . '";
         var s = document.createElement("script");
         s.type = "text/javascript";
         s.async = true;
