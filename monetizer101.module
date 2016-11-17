@@ -8,6 +8,9 @@
 // Store the HTML ID as a constant, as we need it for fragment linking.
 define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
+// Default widget base URL.
+define('MONETIZER101_DEFAULT_BASE_URL', 'https://link.monetizer101.com');
+
 /**
  * Implements hook_menu().
  */
@@ -58,7 +61,6 @@ function monetizer101_theme($existing, $type, $theme, $path) {
       'variables' => array(
         'config' => array(),
         'widget_name' => '',
-
       ),
     ),
   );
@@ -87,7 +89,7 @@ function monetizer101_add_js() {
     $done = TRUE;
     $js = '
     (function () {
-        var u = "http://do.expertreviews.co.uk";
+        var u = "' . variable_get('monetizer101_url', MONETIZER101_DEFAULT_BASE_URL) . '";
         var s = document.createElement("script");
         s.type = "text/javascript";
         s.async = true;
@@ -246,12 +248,14 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
  * Full listing needs to be a block so it can be placed in a region.
  */
 function monetizer101_block_info() {
-
   $blocks = _monetizer101_node_blocks();
-
   $blocks['monetizer101_sidebar'] = array(
     'info' => t('Monetizer101 Sidebar'),
     'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+  $blocks['monetizer101_block'] = array(
+    'info' => t('Monetizer101 Block'),
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -265,11 +269,15 @@ function monetizer101_block_info() {
 function _monetizer101_node_blocks() {
   $blocks['monetizer101_full'] = array(
     'info' => t('Monetizer101 Full'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   $blocks['monetizer101_summary'] = array(
     'info' => t('Monetizer101 Summary'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['monetizer101_sticky'] = array(
+    'info' => t('Monetizer101 Sticky'),
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -387,13 +395,17 @@ function monetizer101_block_view($delta = '') {
       }
       $block['content'] = variable_get('monetizer101_script');
       break;
-
+    case 'monetizer101_sticky':
+      // Attach sticky JS to block.
+      if ($config) {
+        $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
+      }
+      break;
     default:
       break;
   }
   return $block;
 }
-
 
 /**
  * Implements hook_preprocess_page().

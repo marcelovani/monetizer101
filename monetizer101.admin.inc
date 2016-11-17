@@ -28,6 +28,13 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#description' => t('For specific widget settings (such as templateID), please edit the block from the !block_config_page', array('!block_config_page' => l(t('block config page'), 'admin/structure/block'))),
   );
 
+  $form['monetizer101']['monetizer101_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Base URL'),
+    '#description' => t('Widget base URL.'),
+    '#default_value' => variable_get('monetizer101_url', MONETIZER101_DEFAULT_BASE_URL),
+  );
+
   $form['monetizer101']['monetizer101_shop_id'] = array(
     '#type' => 'textfield',
     '#title' => t('Shop ID'),
