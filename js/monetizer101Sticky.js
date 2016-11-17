@@ -53,22 +53,24 @@
       sticky.init = function() {
         // wait for iframe to load (we don't have access to a proper callback unfortunately)
         setTimeout(function () {
-          // set fixed position styles on block
-          stickyBlock.style.display = 'block';
-          stickyBlock.style.overflow = 'hidden';
-          stickyBlock.style.position = 'fixed';
-          stickyBlock.style.top = -height + 'px';
-          stickyBlock.style.left = 0;
-          stickyBlock.style.right = 0;
-          stickyBlock.style.width = '100%';
-          stickyBlock.style.height = height + 'px';
-          stickyBlock.style.margin = 0;
-          stickyBlock.style.zIndex = 500;
-          stickyBlock.style.backgroundColor = 'white';
-          // set start position & add scroll event listener
-          startPosition = document.documentElement.scrollTop || document.body.scrollTop;
-          addEventListener('scroll', sticky.scrollMoveBlock);
-        }, 5000);
+          if (stickyBlock.querySelector('iframe')) {
+            // set fixed position styles on block
+            stickyBlock.style.display = 'block';
+            stickyBlock.style.overflow = 'hidden';
+            stickyBlock.style.position = 'fixed';
+            stickyBlock.style.top = -height + 'px';
+            stickyBlock.style.left = 0;
+            stickyBlock.style.right = 0;
+            stickyBlock.style.width = '100%';
+            stickyBlock.style.height = height + 'px';
+            stickyBlock.style.margin = 0;
+            stickyBlock.style.zIndex = 500;
+            stickyBlock.style.backgroundColor = 'white';
+            // set start position & add scroll event listener
+            startPosition = document.documentElement.scrollTop || document.body.scrollTop;
+            addEventListener('scroll', sticky.scrollMoveBlock);
+          }
+        }, 7000);
       };
 
       return sticky.init();
