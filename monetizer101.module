@@ -71,7 +71,7 @@ function monetizer101_theme($existing, $type, $theme, $path) {
  */
 function theme_monetizer101_widget($vars) {
   // Use the widget name as the sid for now.
-  $vars['config']['sid'] = $vars['widget_name'];
+  $vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
   $attibutes = array(
     'data-m101-type' => 'search-widget',
     'data-config' => drupal_json_encode($vars['config']),
@@ -397,7 +397,18 @@ function monetizer101_block_view($delta = '') {
       if (variable_get('monetizer101_block_enabled') == 0) {
         return;
       }
-      $block['content'] = variable_get('monetizer101_script');
+      $script = variable_get('monetizer101_script');
+      $replacement = FALSE;
+      if (arg(0) == 'taxonomy' && is_numeric(arg(2))) {
+        $replacement = arg(2);
+      } elseif (arg(0) == 'node' && is_numeric(arg(1))) {
+        $replacement = arg(1);
+      }
+
+      if ($replacement) {
+        $script = str_replace('BF_Sidebar', $replacement . '_sidebar', $script);
+      }
+      $block['content'] = $script;
       break;
     case 'monetizer101_sticky':
       // Attach sticky JS to block.
@@ -516,7 +527,7 @@ function monetizer101_get_widget_config($node, $block_name) {
   $config['categoryIds'] = '';
   $config['merchantIds'] = '';
 
-  $config['sid'] = '';
+  $config['sid'] = $node->nid;
 
   return $config;
 
@@ -534,3 +545,5 @@ function monetizer101_get_widget_config($node, $block_name) {
 function monetizer101_generate_full_link($text) {
   return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
 }
+
+
