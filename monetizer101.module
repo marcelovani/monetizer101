@@ -378,17 +378,15 @@ function monetizer101_block_view($delta = '') {
   $blocks = _monetizer101_node_blocks();
 
   if (isset($blocks[$delta])) {
-    if (arg(0) == 'node' && is_numeric(arg(1))) {
-      $node = node_load(arg(1));
-      if ($node) {
-        $config = monetizer101_get_widget_config($node, $delta);
-        if ($config) {
-          $block['content'] = array(
-            '#theme' => 'monetizer101_widget',
-            '#config' => $config,
-            '#widget_name' => $delta,
-          );
-        }
+    if ($node = menu_get_object()) {
+      $config = monetizer101_get_widget_config($node, $delta);
+      var_dump($config);
+      if ($config) {
+        $block['content'] = array(
+          '#theme' => 'monetizer101_widget',
+          '#config' => $config,
+          '#widget_name' => $delta,
+        );
       }
     }
   }
