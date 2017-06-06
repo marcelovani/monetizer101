@@ -374,12 +374,9 @@ function monetizer101_block_settings_form($block_name) {
  */
 function monetizer101_block_view($delta = '') {
   $block = array();
+  $config = NULL;
 
-  $blocks = _monetizer101_node_blocks();
-
-  if (isset($blocks[$delta])) {
-
-    var_dump($delta);
+  if (in_array($delta, array_keys(_monetizer101_node_blocks()))) {
     if ($node = menu_get_object()) {
       if ($config = monetizer101_get_widget_config($node, $delta)) {
         $block['content'] = array(
@@ -408,15 +405,18 @@ function monetizer101_block_view($delta = '') {
       }
       $block['content'] = $script;
       break;
+
     case 'monetizer101_sticky':
       // Attach sticky JS to block.
-      if ($config = monetizer101_get_widget_config($node, $delta)) {
+      if ($config) {
         $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
       }
       break;
+
     default:
       break;
   }
+
   return $block;
 }
 
