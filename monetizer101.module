@@ -148,15 +148,15 @@ function monetizer101_form_node_type_form_alter(&$form, $form_state) {
 function monetizer101_node_type_callback(&$form, &$form_state) {
   $content_type = $form['#node_type']->type;
 
-  $extra_fields_prodcut_name = 'monetizer101_product_name_field_' . $content_type;
+  $extra_fields_product_name = 'monetizer101_product_name_field_' . $content_type;
   $product_value = $form_state['complete form']['monetizer101']['product_name']['#value'];
 
-  $extra_fields_prodcut_price = 'monetizer101_price_field_' . $content_type;
+  $extra_fields_product_price = 'monetizer101_price_field_' . $content_type;
   $product_price_value = $form_state['complete form']['monetizer101']['product_price']['#value'];
 
   // Set the variable for this node type.
-  variable_set($extra_fields_prodcut_name, $product_value);
-  variable_set($extra_fields_prodcut_price, $product_price_value);
+  variable_set($extra_fields_product_name, $product_value);
+  variable_set($extra_fields_product_price, $product_price_value);
 
   // Clear cache.
   field_info_cache_clear();
