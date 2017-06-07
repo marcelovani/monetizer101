@@ -72,11 +72,11 @@ function monetizer101_theme($existing, $type, $theme, $path) {
 function theme_monetizer101_widget($vars) {
   // Use the widget name as the sid for now.
   $vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
-  $attibutes = array(
+  $attributes = array(
     'data-m101-type' => 'search-widget',
     'data-config' => drupal_json_encode($vars['config']),
   );
-  return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attibutes) . '></div>';
+  return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attributes) . '></div>';
 
 }
 
@@ -534,7 +534,5 @@ function monetizer101_get_widget_config($node, $block_name) {
  *   A string containing the HTML for the link.
  */
 function monetizer101_generate_full_link($text) {
-  return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attibutes' => array('class' => 'monetizer101-full-results-link')));
+  return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attributes' => array('class' => 'monetizer101-full-results-link')));
 }
-
-
