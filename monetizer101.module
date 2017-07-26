@@ -83,31 +83,15 @@ function theme_monetizer101_widget($vars) {
 /**
  * Add the inline js to the footer of the page.
  */
+/**
+ * Add the inline js to the footer of the page.
+ */
 function monetizer101_add_js() {
   static $done;
   if (!$done) {
     $done = TRUE;
-    $js = "
-    (function () {
-      var domain = '" . variable_get('monetizer101_url', MONETIZER101_DEFAULT_BASE_URL) . "';
-      var libs = [{ lib: 'widget/custom-2.0.3/js/load.min.js', method: function () { return MONETIZER101.init(domain) }},
-          { lib: 'widget/search-2.0.3/js/load.min.js', method: function () { return MONETIZER101SEARCH.init(domain) }}];
-      var i = libs.length;
-      while (i--) {
-        var l = libs[i];
-        var s = document.createElement(\"script\");
-        s.type = \"text/javascript\";
-        s.async = true;
-        s.src = domain + '/' + l.lib;
-        s.onload = l.method;
-        var x = document.getElementsByTagName(\"script\")[0];
-        x.parentNode.insertBefore(s, x)
-      }
-    })();
-    ";
-    drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+    drupal_add_js("//do.expertreviews.co.uk/widget/search-2.0.3/js/expertreviews.min.js",array('type' => 'external', 'scope' => 'footer'));
   }
-
 }
 
 /**
