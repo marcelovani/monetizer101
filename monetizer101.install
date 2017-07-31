@@ -4,7 +4,32 @@
  * Install file for monetizer101 module.
  */
 
-
+/**
+ * Implements hook_requirements().
+ */
+function monetizer101_requirements($phase) {
+  if ($phase == 'runtime') {
+    if (empty(variable_get('monetizer101_js_url'))) {
+      $requirements['monetizer101'] = array(
+        'title' => 'monetizer101',
+        'value' => '[ERROR] Javascript Url missing',
+        'description' => 'The javascript url must be set at '
+          . l('/admin/config/system/monetizer101', '/admin/config/system/monetizer101'),
+        'severity' => REQUIREMENT_ERROR
+      );
+      return $requirements;
+    }
+    else {
+      $requirements['monetizer101'] = array(
+        'title' => 'monetizer101',
+        'value' => 'Javascript Url set',
+        'description' => 'The javascript url is set to ' . variable_get('monetizer101_js_url'),
+        'severity' => REQUIREMENT_OK
+      );
+      return $requirements;
+    }
+  }
+}
 
 /**
  * Implements hook_uninstall().
@@ -16,7 +41,7 @@ function monetizer101_uninstall() {
   variable_del('monetizer101_geolocation');
   variable_del('monetizer101_block_enabled');
   variable_del('monetizer101_script');
-  variable_del('monetizer101_url');
+  variable_del('monetizer101_js_url');
 
   foreach (node_type_get_types() as $machine_name => $type) {
     variable_del('monetizer101_product_name_field_' . $machine_name);
@@ -48,4 +73,11 @@ function monetizer101_update_7100() {
   variable_del('monetizer101_sort_results');
   variable_del('monetizer101_api_key');
   variable_del('monetizer101_api_url');
+}
+
+/**
+ * Remove unused monetizer101 variables.
+ */
+function monetizer101_update_7200() {
+  variable_del('monetizer101_url');
 }

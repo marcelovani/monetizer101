@@ -8,9 +8,6 @@
 // Store the HTML ID as a constant, as we need it for fragment linking.
 define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
-// Default widget base URL.
-define('MONETIZER101_DEFAULT_BASE_URL', 'https://link.monetizer101.com');
-
 /**
  * Implements hook_menu().
  */
@@ -90,7 +87,10 @@ function monetizer101_add_js() {
   static $done;
   if (!$done) {
     $done = TRUE;
-    drupal_add_js("//do.expertreviews.co.uk/widget/search-2.0.3/js/expertreviews.min.js",array('type' => 'external', 'scope' => 'footer'));
+    $js_url = variable_get('monetizer101_js_url');
+    if (!empty($js_url)) {
+      drupal_add_js($js_url, array('type' => 'external', 'scope' => 'footer'));
+    }
   }
 }
 
