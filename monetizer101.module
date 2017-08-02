@@ -80,9 +80,6 @@ function theme_monetizer101_widget($vars) {
 /**
  * Add the inline js to the footer of the page.
  */
-/**
- * Add the inline js to the footer of the page.
- */
 function monetizer101_add_js() {
   static $done;
   if (!$done) {
