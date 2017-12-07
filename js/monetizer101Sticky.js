@@ -5,7 +5,7 @@
     attach: function() {
       var sticky = {},
       stickyBlock = document.getElementById('block-monetizer101-monetizer101-sticky'),
-      height = 60,
+      height = 45,
       startPosition = 0,
       currentPosition = 0,
       moveAmount = 0;
