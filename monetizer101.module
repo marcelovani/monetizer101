@@ -428,6 +428,13 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
       }
     }
 
+    // Hide m101_summary widgets if the disable_monetizer flag is active on the current node.
+    $disable_mod_widgets = flag_get_flag('disable_monetizer_widgets')->is_flagged($node->nid);
+    // Don't add any monetizer content to the node if flagged (DD-289).
+    if ($disable_mod_widgets == TRUE) {
+      return;
+    }
+
     if ($show_summary) {
       $block = monetizer101_block_view('monetizer101_summary');
       $node->content['monetizer101_summary'] = $block['content'];
@@ -516,4 +523,69 @@ function monetizer101_get_widget_config($node, $block_name) {
  */
 function monetizer101_generate_full_link($text) {
   return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attributes' => array('class' => 'monetizer101-full-results-link')));
+}
+
+/**
+ * Implements hook_flag_default_flags().
+ */
+function monetizer101_flag_default_flags() {
+  $flags = array();
+
+  $flags['disable_monetizer_widgets'] = array(
+    'entity_type' => 'node',
+    'title' => 'Disable M101 Widgets',
+    'global' => 1,
+    'types' => variable_get('dennis_layout_flag_disable_m_widget_nodes', array(
+      'article',
+      'review',
+    )),
+    'flag_short' => 'Disable M101 Widgets',
+    'flag_long' => 'Disable the M101 Widgets on this node',
+    'flag_message' => 'M101 Widgets have been disabled on this node',
+    'unflag_short' => 'Enable M101 Widgets',
+    'unflag_long' => 'Enable the M101 Widgets on this node',
+    'unflag_message' => 'The M101 Widgets have been enabled on this node',
+    'unflag_denied_text' => '',
+    'link_type' => 'toggle',
+    'weight' => 0,
+    'show_in_links' => array(
+      'full' => 1,
+      'token' => 0,
+    ),
+    'show_as_field' => 0,
+    'show_on_form' => 1,
+    'access_author' => '',
+    'show_contextual_link' => 0,
+    'show_on_profile' => 0,
+    'access_uid' => '',
+    'api_version' => 3,
+  );
+  return $flags;
+}
+
+/**
+ * Implements hook_block_view_alter().
+ */
+function monetizer101_block_view_alter(&$data, $block) {
+
+  if ($block->module == 'monetizer101') {
+    // Get current node object so we can see if it has been flagged.
+    if ($node = menu_get_object()) {
+      $disable_mod_widgets = flag_get_flag('disable_monetizer_widgets')->is_flagged($node->nid);
+    }
+    else {
+      return;
+    }
+
+    if ($disable_mod_widgets) {
+      switch ($block->delta) {
+        case 'monetizer101_full':
+          unset($data['content']);
+          break;
+        case 'monetizer101_sticky':
+          unset($data['content']);
+          break;
+      }
+    }
+  }
 }
