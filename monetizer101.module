@@ -441,6 +441,10 @@ function monetizer101_block_view($delta = '') {
  * @param $variables
  */
 function monetizer101_preprocess_page(&$variables) {
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
   // Add monetizer js to the page.
   monetizer101_add_js(TRUE);
 }
