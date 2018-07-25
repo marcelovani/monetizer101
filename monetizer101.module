@@ -89,23 +89,24 @@ function monetizer101_add_js($global_js_override = FALSE) {
     $done = TRUE;
 
     if ($global_js_override) {
-      $js  = "(function () {
+      $js = "(function () {
       var s = document.createElement('script');
       s.type = 'text/javascript';
       s.async = true;
       s.src = '//do.expertreviews.co.uk/widget/pc/app.bundle.js';
       s.onload = function () {
         new PriceComparison({
-          domain: 'do.expertreviews.co.uk'',
+          domain: 'do.expertreviews.co.uk',
           shopId: 850,
           isoCurrencyCode: 'GBP',
-          isoLanguageCode: 'en'',
+          isoLanguageCode: 'en',
           geolocation: true,
         });
       };
       var x = document.getElementsByTagName('script')[0];
       x.parentNode.insertBefore(s, x);
-    })();";
+      })();
+    ";
 
       $options = array(
         'scope' => 'footer',
@@ -116,7 +117,10 @@ function monetizer101_add_js($global_js_override = FALSE) {
     else {
       $js_url = variable_get('monetizer101_js_url');
       if (!empty($js_url)) {
-        drupal_add_js($js_url, array('type' => 'external', 'scope' => 'footer'));
+        drupal_add_js($js_url, array(
+          'type' => 'external',
+          'scope' => 'footer'
+        ));
       }
     }
   }
