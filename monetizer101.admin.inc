@@ -36,6 +36,14 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  $form['monetizer101']['monetizer101_domain'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Domain'),
+    '#description' => t('Your Monetizer101 domain.'),
+    '#default_value' => variable_get('monetizer101_domain', ''),
+    '#required' => TRUE,
+  );
+
   $form['monetizer101']['monetizer101_shop_id'] = array(
     '#type' => 'textfield',
     '#title' => t('Shop ID'),
