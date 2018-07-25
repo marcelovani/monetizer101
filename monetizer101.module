@@ -83,13 +83,8 @@ function theme_monetizer101_widget($vars) {
  *  @param boolean $global_js_override
  *   The version of JS to use.
  */
-function monetizer101_add_js($global_js_override = FALSE) {
-  static $done;
-  if (!$done) {
-    $done = TRUE;
-
-    if ($global_js_override) {
-      $js = "(function () {
+function monetizer101_add_js() {
+  $js = "(function () {
       var s = document.createElement('script');
       s.type = 'text/javascript';
       s.async = true;
@@ -108,22 +103,13 @@ function monetizer101_add_js($global_js_override = FALSE) {
       })();
     ";
 
-      $options = array(
-        'scope' => 'footer',
-        'type' => 'inline',
-      );
-      drupal_add_js($js, $options);
-    }
-    else {
-      $js_url = variable_get('monetizer101_js_url');
-      if (!empty($js_url)) {
-        drupal_add_js($js_url, array(
-          'type' => 'external',
-          'scope' => 'footer'
-        ));
-      }
-    }
-  }
+  $options = array(
+    'scope' => 'footer',
+    'type' => 'inline',
+    'group' => JS_DEFAULT
+  );
+
+  drupal_add_js($js, $options);
 }
 
 /**
@@ -446,7 +432,7 @@ function monetizer101_preprocess_page(&$variables) {
   }
 
   // Add monetizer js to the page.
-  monetizer101_add_js(TRUE);
+  monetizer101_add_js();
 }
 
 /**
