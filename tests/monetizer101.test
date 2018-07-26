@@ -81,7 +81,7 @@ class Monetizer101Test extends DrupalWebTestCase {
    */
   protected function testWidgets() {
     // Add price field.
-    $this->drupalGet('admin/structure/types/manage/article/fields');
+    //$this->drupalGet('admin/structure/types/manage/article/fields');
     $edit = array(
       'fields[_add_new_field][label]' => 'price',
       'fields[_add_new_field][field_name]' => 'price',
@@ -91,7 +91,7 @@ class Monetizer101Test extends DrupalWebTestCase {
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
     // Add product field.
-    $this->drupalGet('admin/structure/types/manage/article/fields');
+    //$this->drupalGet('admin/structure/types/manage/article/fields');
     $edit = array(
       'fields[_add_new_field][label]' => 'product',
       'fields[_add_new_field][field_name]' => 'product',
@@ -101,13 +101,27 @@ class Monetizer101Test extends DrupalWebTestCase {
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
     // Blocks placement.
-    $this->drupalGet('admin/structure/block');
+    //$this->drupalGet('admin/structure/block');
     $edit = array(
       'blocks[monetizer101_monetizer101_full][region]' => 'content',
       'blocks[monetizer101_monetizer101_sticky][region]' => 'content',
       'blocks[monetizer101_monetizer101_summary][region]' => 'content',
     );
     $this->drupalPost('admin/structure/block', $edit, t('Save blocks'));
+
+    // Create content.
+    $edit = array(
+      'title' => $this->randomName(8),
+      'field_price[und][0][value]' => 100,
+      'field_product[und][0][value]' => 'Dell XPS 13',
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+
+    // Get the article node that was saved by the unique title.
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+
+    // Check that blocks are placed.
+    $this->drupalGet('node/' . $node->nid);
   }
 
 }
