@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Tests for Monetizer101 module.
+ */
+class Monetizer101Test extends DrupalWebTestCase {
+  protected $adminUser;
+
+  /**
+   * @inheritdoc
+   *
+   * @return array
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Monetizer101',
+      'description' => 'Tests that Monetizer101 renders correctly.',
+      'group' => 'Monetizer101',
+    );
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function setUp() {
+    // Enable modules.
+    $modules = array(
+      'flag',
+      'node',
+      'monetizer101',
+    );
+    parent::setUp($modules);
+
+    // Create Admin user.
+    $this->adminUser = $this->drupalCreateUser(array(
+        'access administration pages',
+        'administer content types',
+        'administer nodes',
+        'create article content',
+        'edit any article content',
+        'administer fields',
+        'administer modules',
+        'administer monetizer101 settings',
+      )
+    );
+    $this->drupalLogin($this->adminUser);
+  }
+
+  /**
+   * @inheritdoc
+   */
+  function testLinkToConfig() {
+    $this->drupalGet('admin/modules');
+    $link = $this->xpath('//a[contains(@href, :href) and contains(@id, :id)]', [
+      ':href' => 'admin/config/system/monetizer101',
+      ':id' => 'edit-modules-advertising-monetizer101-links-configure'
+    ]);
+    $this->assertTrue(count($link) === 1, 'Link to config is present');
+  }
+
+  /**
+   * @inheritdoc
+   */
+  protected function testWidgets() {
+
+  }
+
+}
