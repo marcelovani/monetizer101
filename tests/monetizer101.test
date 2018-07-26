@@ -29,7 +29,6 @@ class Monetizer101Test extends DrupalWebTestCase {
       'flag',
       'node',
       'monetizer101',
-      'monetizer101_test',
     );
     parent::setUp($modules);
 
