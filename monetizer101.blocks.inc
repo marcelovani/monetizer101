@@ -193,6 +193,9 @@ function monetizer101_block_view_alter(&$data, $block) {
         case 'monetizer101_sticky':
           unset($data['content']);
           break;
+        case 'monetizer101_summary':
+          unset($data['content']);
+          break;
       }
     }
   }
