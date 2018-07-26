@@ -48,7 +48,7 @@ function monetizer101_uninstall() {
     variable_del('monetizer101_price_field_' . $machine_name);
   }
 
-  $blocks = _monetizer101_node_blocks();
+  $blocks = monetizer101_block_info();
   foreach ($blocks as $name => $block) {
     variable_del($name . '_template_id');
     variable_del($name . '_price_range');

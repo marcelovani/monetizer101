@@ -21,15 +21,6 @@ function monetizer101_menu() {
     'file' => 'monetizer101.admin.inc',
   );
 
-  $items['admin/config/system/monetizer101/monetizer101-block'] = array(
-    'title' => 'Monetizer101 Sidebar',
-    'description' => 'Add Monetizer101 script.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('monetizer101_admin_settings'),
-    'access arguments' => array('edit monetizer101 block widget'),
-    'file' => 'monetizer101.admin.block.inc',
-  );
-
   return $items;
 }
 
@@ -282,26 +273,6 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
  * Full listing needs to be a block so it can be placed in a region.
  */
 function monetizer101_block_info() {
-  $blocks = _monetizer101_node_blocks();
-  $blocks['monetizer101_sidebar'] = array(
-    'info' => t('Monetizer101 Sidebar'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-  );
-  $blocks['monetizer101_block'] = array(
-    'info' => t('Monetizer101 Block'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-
-  return $blocks;
-}
-
-/**
- * Define blocks that should appear on node pages.
- *
- * @return array
- *   An array of blocks, compatible with hook_block_info().
- */
-function _monetizer101_node_blocks() {
   $blocks['monetizer101_full'] = array(
     'info' => t('Monetizer101 Full'),
     'cache' => DRUPAL_NO_CACHE,
@@ -315,6 +286,11 @@ function _monetizer101_node_blocks() {
     'cache' => DRUPAL_NO_CACHE,
   );
 
+//  $blocks['monetizer101_block'] = array(
+//    'info' => t('Monetizer101 Block'),
+//    'cache' => DRUPAL_NO_CACHE,
+//  );
+
   return $blocks;
 }
 
@@ -325,7 +301,7 @@ function monetizer101_block_configure($delta = '') {
   $form = array();
 
   // Get all the blocks defined by this module.
-  $blocks = _monetizer101_node_blocks();
+  $blocks = monetizer101_block_info();
 
   if (isset($blocks[$delta])) {
     $form = monetizer101_block_settings_form($delta);
@@ -339,7 +315,7 @@ function monetizer101_block_configure($delta = '') {
  */
 function monetizer101_block_save($delta = '', $edit = array()) {
   // Get all the blocks defined by this module.
-  $blocks = _monetizer101_node_blocks();
+  $blocks = monetizer101_block_info();
 
   if (isset($blocks[$delta])) {
     foreach ($edit as $name => $value) {
@@ -408,7 +384,7 @@ function monetizer101_block_view($delta = '') {
   $block = array();
   $config = NULL;
 
-  if (in_array($delta, array_keys(_monetizer101_node_blocks()))) {
+  if (in_array($delta, array_keys(monetizer101_block_info()))) {
     if ($node = menu_get_object()) {
       if ($config = monetizer101_get_widget_config($node, $delta)) {
         $block['content'] = array(
