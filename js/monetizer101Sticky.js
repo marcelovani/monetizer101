@@ -11,8 +11,8 @@
       moveAmount = 0;
 
       // if the site has a sticky header account it's ID can be defined at the site level and accounted for here
-      if(typeof Drupal.settings.dennisJs.stickyNavID !== 'undefined') {
-        var stickyNav = document.getElementById(Drupal.settings.dennisJs.stickyNavID);
+      if(typeof Drupal.settings.monetizer101Js.stickyNavID !== 'undefined') {
+        var stickyNav = document.getElementById(Drupal.settings.monetizer101Js.stickyNavID);
       }
 
       // update required elements based on amount user has scrolled
