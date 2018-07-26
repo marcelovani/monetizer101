@@ -29,6 +29,7 @@ class Monetizer101Test extends DrupalWebTestCase {
       'flag',
       'node',
       'monetizer101',
+      'monetizer101_test',
     );
     parent::setUp($modules);
 
@@ -66,9 +67,11 @@ class Monetizer101Test extends DrupalWebTestCase {
   function testAdminUI() {
     $this->drupalGet('admin/config/system/monetizer101');
 
+    global $base_url;
+
     $edit = array(
       'monetizer101_js_url' => '//do.example.com/widget/pc/app.bundle.js',
-      'monetizer101_domain' => 'do.example.com',
+      'monetizer101_domain' => $base_url . '/admin/config/system/monetizer101/api',
       'monetizer101_shop_id' => '123',
       'monetizer101_currency_code' => 'GBP',
       'monetizer101_language_code' => 'en',
@@ -81,7 +84,6 @@ class Monetizer101Test extends DrupalWebTestCase {
    */
   protected function testWidgets() {
     // Add price field.
-    //$this->drupalGet('admin/structure/types/manage/article/fields');
     $edit = array(
       'fields[_add_new_field][label]' => 'price',
       'fields[_add_new_field][field_name]' => 'price',
@@ -91,7 +93,6 @@ class Monetizer101Test extends DrupalWebTestCase {
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
     // Add product field.
-    //$this->drupalGet('admin/structure/types/manage/article/fields');
     $edit = array(
       'fields[_add_new_field][label]' => 'product',
       'fields[_add_new_field][field_name]' => 'product',
@@ -100,8 +101,14 @@ class Monetizer101Test extends DrupalWebTestCase {
     );
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
+    // Configure fields
+    $edit = array(
+      'product_name' => 'field_product',
+      'product_price' => 'field_price',
+    );
+    $this->drupalPost('admin/structure/types/manage/article', $edit, t('Save content type'));
+
     // Blocks placement.
-    //$this->drupalGet('admin/structure/block');
     $edit = array(
       'blocks[monetizer101_monetizer101_full][region]' => 'content',
       'blocks[monetizer101_monetizer101_sticky][region]' => 'content',
@@ -122,6 +129,9 @@ class Monetizer101Test extends DrupalWebTestCase {
 
     // Check that blocks are placed.
     $this->drupalGet('node/' . $node->nid);
-  }
 
+    $this->assertRaw('<div id="monetizer101-full" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;full&quot;,&quot;resultLimit&quot;:10}"></div>');
+    $this->assertRaw('<div id="monetizer101-summary" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;summary&quot;,&quot;resultLimit&quot;:3}"></div>');
+    $this->assertRaw('<div id="monetizer101-sticky" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;sticky&quot;,&quot;resultLimit&quot;:1}"></div>');
+  }
 }
