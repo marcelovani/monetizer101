@@ -53,34 +53,56 @@ function monetizer101_permission() {
  * Implements hook_theme().
  */
 function monetizer101_theme($existing, $type, $theme, $path) {
-  return array(
+  $theme = array(
     'monetizer101_widget' => array(
       'variables' => array(
         'config' => array(),
         'widget_name' => '',
       ),
+//      'template' => 'monetizer101',
+//      'path' => drupal_get_path('module', 'monetizer101') . '/templates',
     ),
   );
+
+  return $theme;
 }
+
+//function template_preprocess_monetizer101_widget($vars) {
+//  debug($vars['config']);
+//  $vars['data_config'] = drupal_json_encode($vars['config']);
+//}
 
 /**
  * Theme callback for creating an m101 widget.
  */
 function theme_monetizer101_widget($vars) {
   // Use the widget name as the sid for now.
-  $vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
-  $attributes = array(
-    'data-m101-type' => 'search-widget',
-    'data-config' => drupal_json_encode($vars['config']),
-  );
-  return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attributes) . '></div>';
+  //$vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
+//
+//  $vars['config'] = array(
+//    'nameKeywords' => 'Dell XPS 13',
+//    'price' => '1300',
+//    'resultLimit' => '10',
+//    'sid' => 'full',
+//  );
 
+  $attributes = array(
+    'data-type' => 'price-comparison',
+    'data-config' => json_encode($vars['config']),
+  );
+
+//  $output = 'DDDD<div data-type="price-comparison" data-config=\'{"nameKeywords": "Dell XPS 13", "price": 1200, "resultLimit": 10, "sid": "full"}\'></div>';
+  $output = $vars['config']['sid'];
+  $output .= '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
+
+//  debug($output);
+  return $output;
 }
 
 /**
  * Add the inline js to the footer of the page.
  *
- *  @param boolean $global_js_override
+ * @param boolean $global_js_override
  *   The version of JS to use.
  */
 function monetizer101_add_js() {
@@ -173,6 +195,7 @@ function monetizer101_node_type_callback(&$form, &$form_state) {
 function _monetizer101_get_content_type_fields($content_type) {
   $fields = array_keys(field_info_instances('node', $content_type));
   $result = array_combine($fields, $fields);
+
   return $result;
 }
 
@@ -186,7 +209,8 @@ function monetizer101_field_extra_fields() {
 
   foreach (node_type_get_types() as $node) {
     if (variable_get('monetizer101_product_name_field_' . $node->type, 0)
-      && variable_get('monetizer101_price_field_' . $node->type, 0)) {
+      && variable_get('monetizer101_price_field_' . $node->type, 0)
+    ) {
 
       $extra['node'][$node->type] = array(
         'display' => array(
@@ -214,6 +238,7 @@ function monetizer101_field_extra_fields() {
       }
     }
   }
+
   return $extra;
 }
 
@@ -266,6 +291,7 @@ function monetizer101_block_info() {
     'info' => t('Monetizer101 Block'),
     'cache' => DRUPAL_NO_CACHE,
   );
+
   return $blocks;
 }
 
@@ -288,9 +314,9 @@ function _monetizer101_node_blocks() {
     'info' => t('Monetizer101 Sticky'),
     'cache' => DRUPAL_NO_CACHE,
   );
+
   return $blocks;
 }
-
 
 /**
  * Implements hook_block_configure().
@@ -371,6 +397,7 @@ function monetizer101_block_settings_form($block_name) {
       ),
     ),
   );
+
   return $form;
 }
 
@@ -386,36 +413,41 @@ function monetizer101_block_view($delta = '') {
       if ($config = monetizer101_get_widget_config($node, $delta)) {
         $block['content'] = array(
           '#theme' => 'monetizer101_widget',
-          '#config' => $config,
           '#widget_name' => $delta,
         );
       }
-    }
-  }
-  switch ($delta) {
-    case 'monetizer101_sidebar':
-      if (variable_get('monetizer101_block_enabled') == 0) {
+      else {
         return;
       }
-      $script = variable_get('monetizer101_script');
-      $replacement = FALSE;
-      if (arg(0) == 'taxonomy' && is_numeric(arg(2))) {
-        $replacement = arg(2);
-      } elseif (arg(0) == 'node' && is_numeric(arg(1))) {
-        $replacement = arg(1);
-      }
+    }
+  }
 
-      if ($replacement) {
-        $script = str_replace('BF_Sidebar', $replacement . '_sidebar', $script);
-      }
-      $block['content'] = $script;
+  switch ($delta) {
+    case 'monetizer101_full':
+      $block['content']['#config'] = array(
+        'nameKeywords' => $config['nameKeywords'],
+        'price' => $config['price'],
+        'sid' => 'full',
+        'resultLimit' => 10,
+      );
+      break;
+
+    case 'monetizer101_summary':
+      $block['content']['#config'] = array(
+        'nameKeywords' => $config['nameKeywords'],
+        'price' => $config['price'],
+        'sid' => 'summary',
+        'resultLimit' => 3,
+      );
       break;
 
     case 'monetizer101_sticky':
-      // Attach sticky JS to block.
-      if ($config) {
-        $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
-      }
+      $block['content']['#config'] = array(
+        'nameKeywords' => $config['nameKeywords'],
+        'price' => $config['price'],
+        'sid' => 'sticky',
+        'resultLimit' => 1,
+      );
       break;
 
     default:
@@ -427,6 +459,7 @@ function monetizer101_block_view($delta = '') {
 
 /**
  * Implements hook_preprocess_page().
+ *
  * @param $variables
  */
 function monetizer101_preprocess_page(&$variables) {
@@ -510,19 +543,11 @@ function monetizer101_get_widget_config($node, $block_name) {
 
   $config['price'] = $price_value[0]['value'];
   $config['delta'] = variable_get($block_name . '_price_range', '30');
-  // Use retail price to retrieve more accurate results.
   $config['priceType'] = 'RETAIL_PRICE';
-
-  $config['shopId'] = variable_get('monetizer101_shop_id', '');
-  $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
-  $config['isoLanguageCode'] = variable_get('monetizer101_language_code', 'en');
-  $config['geolocation'] = (bool) variable_get('monetizer101_geolocation', TRUE);
   $config['templateId'] = variable_get($block_name . '_template_id', '');
   $config['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
   $config['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
-
   $config['merchantFilter'] = FALSE;
-
   $merchant_number = variable_get($block_name . '_merchant_number', '');
   if (!empty($merchant_number)) {
     $config['merchantFilter'] = TRUE;
@@ -533,8 +558,7 @@ function monetizer101_get_widget_config($node, $block_name) {
   // leave them blank).
   $config['categoryIds'] = '';
   $config['merchantIds'] = '';
-
-  $config['sid'] = $node->nid;
+  $config['resultLimit'] = 1;
 
   return $config;
 
@@ -550,7 +574,10 @@ function monetizer101_get_widget_config($node, $block_name) {
  *   A string containing the HTML for the link.
  */
 function monetizer101_generate_full_link($text) {
-  return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attributes' => array('class' => 'monetizer101-full-results-link')));
+  return l($text, request_uri(), array(
+    'fragment' => MONETIZER101_FULL_RESULTS_HTML_ID,
+    'attributes' => array('class' => 'monetizer101-full-results-link')
+  ));
 }
 
 /**
@@ -588,6 +615,7 @@ function monetizer101_flag_default_flags() {
     'access_uid' => '',
     'api_version' => 3,
   );
+
   return $flags;
 }
 

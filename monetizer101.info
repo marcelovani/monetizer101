@@ -2,3 +2,4 @@ name = Monetizer101
 description = Provides a field formatter and blocks that integrate with monetizer101 to display relevant products.
 package = Advertising
 core = 7.x
+dependencies[] = flag
