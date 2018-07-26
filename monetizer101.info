@@ -3,3 +3,5 @@ description = Provides a field formatter and blocks that integrate with monetize
 package = Advertising
 core = 7.x
 dependencies[] = flag
+configure = admin/config/system/monetizer101
+files[] = tests/monetizer101.test
