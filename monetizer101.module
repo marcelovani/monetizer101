@@ -8,6 +8,9 @@
 // Store the HTML ID as a constant, as we need it for fragment linking.
 define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
+require_once('monetizer101.blocks.inc');
+require_once('monetizer101.flags.inc');
+
 /**
  * Implements hook_menu().
  */
@@ -50,43 +53,22 @@ function monetizer101_theme($existing, $type, $theme, $path) {
         'config' => array(),
         'widget_name' => '',
       ),
-//      'template' => 'monetizer101',
-//      'path' => drupal_get_path('module', 'monetizer101') . '/templates',
     ),
   );
 
   return $theme;
 }
 
-//function template_preprocess_monetizer101_widget($vars) {
-//  debug($vars['config']);
-//  $vars['data_config'] = drupal_json_encode($vars['config']);
-//}
-
 /**
  * Theme callback for creating an m101 widget.
  */
 function theme_monetizer101_widget($vars) {
-  // Use the widget name as the sid for now.
-  //$vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
-//
-//  $vars['config'] = array(
-//    'nameKeywords' => 'Dell XPS 13',
-//    'price' => '1300',
-//    'resultLimit' => '10',
-//    'sid' => 'full',
-//  );
-
   $attributes = array(
     'data-type' => 'price-comparison',
     'data-config' => json_encode($vars['config']),
   );
+  $output = '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
 
-//  $output = 'DDDD<div data-type="price-comparison" data-config=\'{"nameKeywords": "Dell XPS 13", "price": 1200, "resultLimit": 10, "sid": "full"}\'></div>';
-  $output = $vars['config']['sid'];
-  $output .= '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
-
-//  debug($output);
   return $output;
 }
 
@@ -268,182 +250,15 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
 }
 
 /**
- * Implements hook_block_info().
- *
- * Full listing needs to be a block so it can be placed in a region.
- */
-function monetizer101_block_info() {
-  $blocks['monetizer101_full'] = array(
-    'info' => t('Monetizer101 Full'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  $blocks['monetizer101_summary'] = array(
-    'info' => t('Monetizer101 Summary'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  $blocks['monetizer101_sticky'] = array(
-    'info' => t('Monetizer101 Sticky'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-
-//  $blocks['monetizer101_block'] = array(
-//    'info' => t('Monetizer101 Block'),
-//    'cache' => DRUPAL_NO_CACHE,
-//  );
-
-  return $blocks;
-}
-
-/**
- * Implements hook_block_configure().
- */
-function monetizer101_block_configure($delta = '') {
-  $form = array();
-
-  // Get all the blocks defined by this module.
-  $blocks = monetizer101_block_info();
-
-  if (isset($blocks[$delta])) {
-    $form = monetizer101_block_settings_form($delta);
-  }
-
-  return $form;
-}
-
-/**
- * Implements hook_block_save().
- */
-function monetizer101_block_save($delta = '', $edit = array()) {
-  // Get all the blocks defined by this module.
-  $blocks = monetizer101_block_info();
-
-  if (isset($blocks[$delta])) {
-    foreach ($edit as $name => $value) {
-      // If the param name starts with the block name,
-      // we know it's a m101 setting.
-      if (strpos($name, $delta) === 0) {
-        variable_set($name, $value);
-      }
-    }
-  }
-}
-
-/**
- * Generate a m101 settings form for the block.
- *
- * @param string $block_name
- *   The name of the block.
- *
- * @return array
- *   The generated form array.
- */
-function monetizer101_block_settings_form($block_name) {
-  $form = array(
-    'monetizer101_settings' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Monetizer101 Settings'),
-      $block_name . '_template_id' => array(
-        '#type' => 'textfield',
-        '#title' => t('Template ID'),
-        '#default_value' => variable_get($block_name . '_template_id', ''),
-      ),
-      $block_name . '_price_range' => array(
-        '#type' => 'textfield',
-        '#title' => t('Price Range'),
-        '#description' => t('Price range to fetch relevant result in percentage.  E.g. 30 is 30% (if price is £100 then range will be £70-£130).'),
-        '#default_value' => variable_get($block_name . '_price_range', ''),
-      ),
-      $block_name . '_merchant_number' => array(
-        '#type' => 'textfield',
-        '#title' => t('Merchant number'),
-        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
-        '#default_value' => variable_get($block_name . '_merchant_number', ''),
-      ),
-      $block_name . '_sorting_field' => array(
-        '#type' => 'textfield',
-        '#title' => t('Field to use for sorting.'),
-        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
-        '#default_value' => variable_get($block_name . '_sorting_field', 'PRICE'),
-      ),
-      $block_name . '_sorting_order' => array(
-        '#type' => 'select',
-        '#title' => t('Sorting Order'),
-        '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
-        '#default_value' => variable_get($block_name . '_sorting_order', 'asc'),
-      ),
-    ),
-  );
-
-  return $form;
-}
-
-/**
- * Implements hook_block_view().
- */
-function monetizer101_block_view($delta = '') {
-  $block = array();
-  $config = NULL;
-
-  if (in_array($delta, array_keys(monetizer101_block_info()))) {
-    if ($node = menu_get_object()) {
-      if ($config = monetizer101_get_widget_config($node, $delta)) {
-        $block['content'] = array(
-          '#theme' => 'monetizer101_widget',
-          '#widget_name' => $delta,
-        );
-      }
-      else {
-        return;
-      }
-    }
-  }
-
-  switch ($delta) {
-    case 'monetizer101_full':
-      $block['content']['#config'] = array(
-        'nameKeywords' => $config['nameKeywords'],
-        'price' => $config['price'],
-        'sid' => 'full',
-        'resultLimit' => 10,
-      );
-      break;
-
-    case 'monetizer101_summary':
-      $block['content']['#config'] = array(
-        'nameKeywords' => $config['nameKeywords'],
-        'price' => $config['price'],
-        'sid' => 'summary',
-        'resultLimit' => 3,
-      );
-      break;
-
-    case 'monetizer101_sticky':
-      $block['content']['#config'] = array(
-        'nameKeywords' => $config['nameKeywords'],
-        'price' => $config['price'],
-        'sid' => 'sticky',
-        'resultLimit' => 1,
-      );
-      break;
-
-    default:
-      break;
-  }
-
-  return $block;
-}
-
-/**
- * Implements hook_preprocess_page().
+ * Implements hook_page_alter().
  *
  * @param $variables
  */
-function monetizer101_preprocess_page(&$variables) {
+function monetizer101_page_alter(&$page) {
   if (path_is_admin(current_path())) {
     return;
   }
 
-  // Add monetizer js to the page.
   monetizer101_add_js();
 }
 
@@ -554,70 +369,4 @@ function monetizer101_generate_full_link($text) {
     'fragment' => MONETIZER101_FULL_RESULTS_HTML_ID,
     'attributes' => array('class' => 'monetizer101-full-results-link')
   ));
-}
-
-/**
- * Implements hook_flag_default_flags().
- */
-function monetizer101_flag_default_flags() {
-  $flags = array();
-
-  $flags['disable_monetizer_widgets'] = array(
-    'entity_type' => 'node',
-    'title' => 'Disable M101 Widgets',
-    'global' => 1,
-    'types' => variable_get('dennis_layout_flag_disable_m_widget_nodes', array(
-      'article',
-      'review',
-    )),
-    'flag_short' => 'Disable M101 Widgets',
-    'flag_long' => 'Disable the M101 Widgets on this node',
-    'flag_message' => 'M101 Widgets have been disabled on this node',
-    'unflag_short' => 'Enable M101 Widgets',
-    'unflag_long' => 'Enable the M101 Widgets on this node',
-    'unflag_message' => 'The M101 Widgets have been enabled on this node',
-    'unflag_denied_text' => '',
-    'link_type' => 'toggle',
-    'weight' => 0,
-    'show_in_links' => array(
-      'full' => 1,
-      'token' => 0,
-    ),
-    'show_as_field' => 0,
-    'show_on_form' => 1,
-    'access_author' => '',
-    'show_contextual_link' => 0,
-    'show_on_profile' => 0,
-    'access_uid' => '',
-    'api_version' => 3,
-  );
-
-  return $flags;
-}
-
-/**
- * Implements hook_block_view_alter().
- */
-function monetizer101_block_view_alter(&$data, $block) {
-
-  if ($block->module == 'monetizer101') {
-    // Get current node object so we can see if it has been flagged.
-    if ($node = menu_get_object()) {
-      $disable_mod_widgets = flag_get_flag('disable_monetizer_widgets')->is_flagged($node->nid);
-    }
-    else {
-      return;
-    }
-
-    if ($disable_mod_widgets) {
-      switch ($block->delta) {
-        case 'monetizer101_full':
-          unset($data['content']);
-          break;
-        case 'monetizer101_sticky':
-          unset($data['content']);
-          break;
-      }
-    }
-  }
 }
