@@ -60,10 +60,44 @@ class Monetizer101Test extends DrupalWebTestCase {
   }
 
   /**
+   * Admin UI.
+   */
+  function testAdminUI() {
+    $this->drupalGet('admin/config/system/monetizer101');
+
+    $edit = array(
+      'monetizer101_js_url' => '//do.example.com/widget/pc/app.bundle.js',
+      'monetizer101_domain' => 'do.example.com',
+      'monetizer101_shop_id' => '123',
+      'monetizer101_currency_code' => 'GBP',
+      'monetizer101_language_code' => 'en',
+    );
+    $this->drupalPost('admin/config/system/monetizer101', $edit, t('Save configuration'));
+  }
+
+  /**
    * @inheritdoc
    */
   protected function testWidgets() {
+    // Add price field.
+    $this->drupalGet('admin/structure/types/manage/article/fields');
+    $edit = array(
+      'fields[_add_new_field][label]' => 'price',
+      'fields[_add_new_field][field_name]' => 'price',
+      'fields[_add_new_field][type]' => 'number_float',
+      'fields[_add_new_field][widget_type]' => 'number',
+    );
+    $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
+    // Add product field.
+    $this->drupalGet('admin/structure/types/manage/article/fields');
+    $edit = array(
+      'fields[_add_new_field][label]' => 'product',
+      'fields[_add_new_field][field_name]' => 'product',
+      'fields[_add_new_field][type]' => 'text',
+      'fields[_add_new_field][widget_type]' => 'text_textfield',
+    );
+    $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
   }
 
 }

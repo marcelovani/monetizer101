@@ -30,7 +30,7 @@ function monetizer101_admin_settings($form, &$form_state) {
 
   $form['monetizer101']['monetizer101_js_url'] = array(
     '#type' => 'textfield',
-    '#title' => t('Javacsript URL'),
+    '#title' => t('Javascript URL'),
     '#description' => t('The url of the javascript, provided by Monetizer.'),
     '#default_value' => variable_get('monetizer101_js_url'),
     '#required' => TRUE,
