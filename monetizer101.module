@@ -50,7 +50,7 @@ function monetizer101_theme($existing, $type, $theme, $path) {
   $theme = array(
     'monetizer101_widget' => array(
       'variables' => array(
-        'config' => array(),
+        'data_config' => array(),
         'widget_name' => '',
       ),
     ),
@@ -65,7 +65,7 @@ function monetizer101_theme($existing, $type, $theme, $path) {
 function theme_monetizer101_widget($vars) {
   $attributes = array(
     'data-type' => 'price-comparison',
-    'data-config' => json_encode($vars['config']),
+    'data-config' => json_encode($vars['data_config']),
   );
   $output = '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
 
@@ -79,7 +79,7 @@ function theme_monetizer101_widget($vars) {
  *   The version of JS to use.
  */
 function monetizer101_add_js() {
-  $config = json_encode(array(
+  $data = json_encode(array(
     'domain' => variable_get('monetizer101_domain'),
     'shopId' => variable_get('monetizer101_shop_id'),
     'isoCurrencyCode' => variable_get('monetizer101_currency_code', 'GBP'),
@@ -94,7 +94,7 @@ function monetizer101_add_js() {
       s.async = true;
       s.src = '$url';
       s.onload = function () {
-        new PriceComparison($config);
+        new PriceComparison($data);
       };
       var x = document.getElementsByTagName('script')[0];
       x.parentNode.insertBefore(s, x);
@@ -312,8 +312,8 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
  *   (e.g. missing field values).  If FALSE you should avoid generating the
  *   widget.
  */
-function monetizer101_get_widget_config($node, $block_name) {
-  $config = array();
+function monetizer101_get_widget_data($node, $block_name) {
+  $data = array();
 
   $product_name_field = variable_get('monetizer101_product_name_field_' . $node->type, '');
   $price_field = variable_get('monetizer101_price_field_' . $node->type, '');
@@ -325,34 +325,33 @@ function monetizer101_get_widget_config($node, $block_name) {
   if (empty($product_name_value) || empty($product_name_value[0]['value'])) {
     return FALSE;
   }
-  $config['nameKeywords'] = $product_name_value[0]['value'];
+  $data['nameKeywords'] = $product_name_value[0]['value'];
 
   $price_value = field_get_items('node', $node, $price_field);
   if (empty($price_value) || empty($price_value[0]['value'])) {
     return FALSE;
   }
 
-  $config['price'] = $price_value[0]['value'];
-  $config['delta'] = variable_get($block_name . '_price_range', '30');
-  $config['priceType'] = 'RETAIL_PRICE';
-  $config['templateId'] = variable_get($block_name . '_template_id', '');
-  $config['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
-  $config['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
-  $config['merchantFilter'] = FALSE;
+  $data['price'] = $price_value[0]['value'];
+  $data['delta'] = variable_get($block_name . '_price_range', '30');
+  $data['priceType'] = 'RETAIL_PRICE';
+  $data['templateId'] = variable_get($block_name . '_template_id', '');
+  $data['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
+  $data['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
+  $data['merchantFilter'] = FALSE;
   $merchant_number = variable_get($block_name . '_merchant_number', '');
   if (!empty($merchant_number)) {
-    $config['merchantFilter'] = TRUE;
-    $config['merchantNumber'] = $merchant_number;
+    $data['merchantFilter'] = TRUE;
+    $data['merchantNumber'] = $merchant_number;
   }
 
   // The parameters below are required but not currently implemented (so we
   // leave them blank).
-  $config['categoryIds'] = '';
-  $config['merchantIds'] = '';
-  $config['resultLimit'] = 1;
+  $data['categoryIds'] = '';
+  $data['merchantIds'] = '';
+  $data['resultLimit'] = 1;
 
-  return $config;
-
+  return $data;
 }
 
 /**
