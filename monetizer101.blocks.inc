@@ -128,10 +128,11 @@ function monetizer101_block_view($delta = '') {
           '#widget_name' => $delta,
         );
       }
-      else {
-        return;
-      }
     }
+  }
+
+  if (empty($data)) {
+    return;
   }
 
   switch ($delta) {

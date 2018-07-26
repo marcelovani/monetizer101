@@ -37,6 +37,7 @@ class Monetizer101Test extends DrupalWebTestCase {
         'access administration pages',
         'administer content types',
         'administer nodes',
+        'administer blocks',
         'create article content',
         'edit any article content',
         'administer fields',
@@ -98,6 +99,15 @@ class Monetizer101Test extends DrupalWebTestCase {
       'fields[_add_new_field][widget_type]' => 'text_textfield',
     );
     $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
+
+    // Blocks placement.
+    $this->drupalGet('admin/structure/block');
+    $edit = array(
+      'blocks[monetizer101_monetizer101_full][region]' => 'content',
+      'blocks[monetizer101_monetizer101_sticky][region]' => 'content',
+      'blocks[monetizer101_monetizer101_summary][region]' => 'content',
+    );
+    $this->drupalPost('admin/structure/block', $edit, t('Save blocks'));
   }
 
 }
