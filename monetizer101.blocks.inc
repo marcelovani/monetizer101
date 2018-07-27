@@ -23,11 +23,6 @@ function monetizer101_block_info() {
     'cache' => DRUPAL_NO_CACHE,
   );
 
-//  $blocks['monetizer101_block'] = array(
-//    'info' => t('Monetizer101 Block'),
-//    'cache' => DRUPAL_NO_CACHE,
-//  );
-
   return $blocks;
 }
 
