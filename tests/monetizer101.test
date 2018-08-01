@@ -37,6 +37,7 @@ class Monetizer101Test extends DrupalWebTestCase {
         'access administration pages',
         'administer content types',
         'administer nodes',
+        'administer blocks',
         'create article content',
         'edit any article content',
         'administer fields',
@@ -60,10 +61,76 @@ class Monetizer101Test extends DrupalWebTestCase {
   }
 
   /**
+   * Admin UI.
+   */
+  function testAdminUI() {
+    $this->drupalGet('admin/config/system/monetizer101');
+
+    global $base_url;
+
+    $edit = array(
+      'monetizer101_js_url' => '//do.example.com/widget/pc/app.bundle.js',
+      'monetizer101_domain' => $base_url . '/admin/config/system/monetizer101/api',
+      'monetizer101_shop_id' => '123',
+      'monetizer101_currency_code' => 'GBP',
+      'monetizer101_language_code' => 'en',
+    );
+    $this->drupalPost('admin/config/system/monetizer101', $edit, t('Save configuration'));
+  }
+
+  /**
    * @inheritdoc
    */
   protected function testWidgets() {
+    // Add price field.
+    $edit = array(
+      'fields[_add_new_field][label]' => 'price',
+      'fields[_add_new_field][field_name]' => 'price',
+      'fields[_add_new_field][type]' => 'number_float',
+      'fields[_add_new_field][widget_type]' => 'number',
+    );
+    $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
 
+    // Add product field.
+    $edit = array(
+      'fields[_add_new_field][label]' => 'product',
+      'fields[_add_new_field][field_name]' => 'product',
+      'fields[_add_new_field][type]' => 'text',
+      'fields[_add_new_field][widget_type]' => 'text_textfield',
+    );
+    $this->drupalPost('admin/structure/types/manage/article/fields', $edit, t('Save'));
+
+    // Configure fields
+    $edit = array(
+      'product_name' => 'field_product',
+      'product_price' => 'field_price',
+    );
+    $this->drupalPost('admin/structure/types/manage/article', $edit, t('Save content type'));
+
+    // Blocks placement.
+    $edit = array(
+      'blocks[monetizer101_monetizer101_full][region]' => 'content',
+      'blocks[monetizer101_monetizer101_sticky][region]' => 'content',
+      'blocks[monetizer101_monetizer101_summary][region]' => 'content',
+    );
+    $this->drupalPost('admin/structure/block', $edit, t('Save blocks'));
+
+    // Create content.
+    $edit = array(
+      'title' => $this->randomName(8),
+      'field_price[und][0][value]' => 100,
+      'field_product[und][0][value]' => 'Dell XPS 13',
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+
+    // Get the article node that was saved by the unique title.
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+
+    // Check that blocks are placed.
+    $this->drupalGet('node/' . $node->nid);
+
+    $this->assertRaw('<div id="monetizer101-full" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;full&quot;,&quot;resultLimit&quot;:10}"></div>');
+    $this->assertRaw('<div id="monetizer101-summary" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;summary&quot;,&quot;resultLimit&quot;:3}"></div>');
+    $this->assertRaw('<div id="monetizer101-sticky" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;sticky&quot;,&quot;resultLimit&quot;:1}"></div>');
   }
-
 }

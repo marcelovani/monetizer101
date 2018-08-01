@@ -8,6 +8,9 @@
 // Store the HTML ID as a constant, as we need it for fragment linking.
 define('MONETIZER101_FULL_RESULTS_HTML_ID', 'block-monetizer101-monetizer101-full');
 
+require_once('monetizer101.blocks.inc');
+require_once('monetizer101.flags.inc');
+
 /**
  * Implements hook_menu().
  */
@@ -19,15 +22,6 @@ function monetizer101_menu() {
     'page arguments' => array('monetizer101_admin_settings'),
     'access arguments' => array('administer monetizer101 settings'),
     'file' => 'monetizer101.admin.inc',
-  );
-
-  $items['admin/config/system/monetizer101/monetizer101-block'] = array(
-    'title' => 'Monetizer101 Sidebar',
-    'description' => 'Add Monetizer101 script.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('monetizer101_admin_settings'),
-    'access arguments' => array('edit monetizer101 block widget'),
-    'file' => 'monetizer101.admin.block.inc',
   );
 
   return $items;
@@ -53,42 +47,67 @@ function monetizer101_permission() {
  * Implements hook_theme().
  */
 function monetizer101_theme($existing, $type, $theme, $path) {
-  return array(
+  $theme = array(
     'monetizer101_widget' => array(
       'variables' => array(
-        'config' => array(),
+        'data_config' => array(),
         'widget_name' => '',
       ),
     ),
   );
+
+  return $theme;
 }
 
 /**
  * Theme callback for creating an m101 widget.
  */
 function theme_monetizer101_widget($vars) {
-  // Use the widget name as the sid for now.
-  $vars['config']['sid'] = $vars['config']['sid'] . '_' . $vars['widget_name'];
   $attributes = array(
-    'data-m101-type' => 'search-widget',
-    'data-config' => drupal_json_encode($vars['config']),
+    'data-type' => 'price-comparison',
+    'data-config' => json_encode($vars['data_config']),
   );
-  return '<div id="' . drupal_html_id($vars['widget_name']) . '" ' . drupal_attributes($attributes) . '></div>';
+  $output = '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
 
+  return $output;
 }
 
 /**
  * Add the inline js to the footer of the page.
+ *
+ * @param boolean $global_js_override
+ *   The version of JS to use.
  */
 function monetizer101_add_js() {
-  static $done;
-  if (!$done) {
-    $done = TRUE;
-    $js_url = variable_get('monetizer101_js_url');
-    if (!empty($js_url)) {
-      drupal_add_js($js_url, array('type' => 'external', 'scope' => 'footer'));
-    }
-  }
+  $data = json_encode(array(
+    'domain' => variable_get('monetizer101_domain'),
+    'shopId' => variable_get('monetizer101_shop_id'),
+    'isoCurrencyCode' => variable_get('monetizer101_currency_code', 'GBP'),
+    'isoLanguageCode' => variable_get('monetizer101_language_code', 'en'),
+    'geolocation' => variable_get('monetizer101_geolocation', TRUE),
+  ));
+  $url = variable_get('monetizer101_js_url');
+
+  $js = "(function () {
+      var s = document.createElement('script');
+      s.type = 'text/javascript';
+      s.async = true;
+      s.src = '$url';
+      s.onload = function () {
+        new PriceComparison($data);
+      };
+      var x = document.getElementsByTagName('script')[0];
+      x.parentNode.insertBefore(s, x);
+      })();
+    ";
+
+  $options = array(
+    'scope' => 'footer',
+    'type' => 'inline',
+    'group' => JS_DEFAULT
+  );
+
+  drupal_add_js($js, $options);
 }
 
 /**
@@ -149,6 +168,7 @@ function monetizer101_node_type_callback(&$form, &$form_state) {
 function _monetizer101_get_content_type_fields($content_type) {
   $fields = array_keys(field_info_instances('node', $content_type));
   $result = array_combine($fields, $fields);
+
   return $result;
 }
 
@@ -162,7 +182,8 @@ function monetizer101_field_extra_fields() {
 
   foreach (node_type_get_types() as $node) {
     if (variable_get('monetizer101_product_name_field_' . $node->type, 0)
-      && variable_get('monetizer101_price_field_' . $node->type, 0)) {
+      && variable_get('monetizer101_price_field_' . $node->type, 0)
+    ) {
 
       $extra['node'][$node->type] = array(
         'display' => array(
@@ -190,6 +211,7 @@ function monetizer101_field_extra_fields() {
       }
     }
   }
+
   return $extra;
 }
 
@@ -228,185 +250,15 @@ function _monetizer101_hide_new_extra_field($entity_type, $bundle, $field_name) 
 }
 
 /**
- * Implements hook_block_info().
+ * Implements hook_page_alter().
  *
- * Full listing needs to be a block so it can be placed in a region.
- */
-function monetizer101_block_info() {
-  $blocks = _monetizer101_node_blocks();
-  $blocks['monetizer101_sidebar'] = array(
-    'info' => t('Monetizer101 Sidebar'),
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-  );
-  $blocks['monetizer101_block'] = array(
-    'info' => t('Monetizer101 Block'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  return $blocks;
-}
-
-/**
- * Define blocks that should appear on node pages.
- *
- * @return array
- *   An array of blocks, compatible with hook_block_info().
- */
-function _monetizer101_node_blocks() {
-  $blocks['monetizer101_full'] = array(
-    'info' => t('Monetizer101 Full'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  $blocks['monetizer101_summary'] = array(
-    'info' => t('Monetizer101 Summary'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  $blocks['monetizer101_sticky'] = array(
-    'info' => t('Monetizer101 Sticky'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
-  return $blocks;
-}
-
-
-/**
- * Implements hook_block_configure().
- */
-function monetizer101_block_configure($delta = '') {
-  $form = array();
-
-  // Get all the blocks defined by this module.
-  $blocks = _monetizer101_node_blocks();
-
-  if (isset($blocks[$delta])) {
-    $form = monetizer101_block_settings_form($delta);
-  }
-
-  return $form;
-}
-
-/**
- * Implements hook_block_save().
- */
-function monetizer101_block_save($delta = '', $edit = array()) {
-  // Get all the blocks defined by this module.
-  $blocks = _monetizer101_node_blocks();
-
-  if (isset($blocks[$delta])) {
-    foreach ($edit as $name => $value) {
-      // If the param name starts with the block name,
-      // we know it's a m101 setting.
-      if (strpos($name, $delta) === 0) {
-        variable_set($name, $value);
-      }
-    }
-  }
-}
-
-/**
- * Generate a m101 settings form for the block.
- *
- * @param string $block_name
- *   The name of the block.
- *
- * @return array
- *   The generated form array.
- */
-function monetizer101_block_settings_form($block_name) {
-  $form = array(
-    'monetizer101_settings' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Monetizer101 Settings'),
-      $block_name . '_template_id' => array(
-        '#type' => 'textfield',
-        '#title' => t('Template ID'),
-        '#default_value' => variable_get($block_name . '_template_id', ''),
-      ),
-      $block_name . '_price_range' => array(
-        '#type' => 'textfield',
-        '#title' => t('Price Range'),
-        '#description' => t('Price range to fetch relevant result in percentage.  E.g. 30 is 30% (if price is £100 then range will be £70-£130).'),
-        '#default_value' => variable_get($block_name . '_price_range', ''),
-      ),
-      $block_name . '_merchant_number' => array(
-        '#type' => 'textfield',
-        '#title' => t('Merchant number'),
-        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
-        '#default_value' => variable_get($block_name . '_merchant_number', ''),
-      ),
-      $block_name . '_sorting_field' => array(
-        '#type' => 'textfield',
-        '#title' => t('Field to use for sorting.'),
-        '#description' => t('The amount of results from each merchant to use. (Leave blank to show unlimited results from each merchant)'),
-        '#default_value' => variable_get($block_name . '_sorting_field', 'PRICE'),
-      ),
-      $block_name . '_sorting_order' => array(
-        '#type' => 'select',
-        '#title' => t('Sorting Order'),
-        '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
-        '#default_value' => variable_get($block_name . '_sorting_order', 'asc'),
-      ),
-    ),
-  );
-  return $form;
-}
-
-/**
- * Implements hook_block_view().
- */
-function monetizer101_block_view($delta = '') {
-  $block = array();
-  $config = NULL;
-
-  if (in_array($delta, array_keys(_monetizer101_node_blocks()))) {
-    if ($node = menu_get_object()) {
-      if ($config = monetizer101_get_widget_config($node, $delta)) {
-        $block['content'] = array(
-          '#theme' => 'monetizer101_widget',
-          '#config' => $config,
-          '#widget_name' => $delta,
-        );
-      }
-    }
-  }
-  switch ($delta) {
-    case 'monetizer101_sidebar':
-      if (variable_get('monetizer101_block_enabled') == 0) {
-        return;
-      }
-      $script = variable_get('monetizer101_script');
-      $replacement = FALSE;
-      if (arg(0) == 'taxonomy' && is_numeric(arg(2))) {
-        $replacement = arg(2);
-      } elseif (arg(0) == 'node' && is_numeric(arg(1))) {
-        $replacement = arg(1);
-      }
-
-      if ($replacement) {
-        $script = str_replace('BF_Sidebar', $replacement . '_sidebar', $script);
-      }
-      $block['content'] = $script;
-      break;
-
-    case 'monetizer101_sticky':
-      // Attach sticky JS to block.
-      if ($config) {
-        $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  return $block;
-}
-
-/**
- * Implements hook_preprocess_page().
  * @param $variables
  */
-function monetizer101_preprocess_page(&$variables) {
-  // Add monetizer js to the page.
+function monetizer101_page_alter(&$page) {
+  if (path_is_admin(current_path())) {
+    return;
+  }
+
   monetizer101_add_js();
 }
 
@@ -460,8 +312,8 @@ function monetizer101_node_view($node, $view_mode, $langcode) {
  *   (e.g. missing field values).  If FALSE you should avoid generating the
  *   widget.
  */
-function monetizer101_get_widget_config($node, $block_name) {
-  $config = array();
+function monetizer101_get_widget_data($node, $block_name) {
+  $data = array();
 
   $product_name_field = variable_get('monetizer101_product_name_field_' . $node->type, '');
   $price_field = variable_get('monetizer101_price_field_' . $node->type, '');
@@ -473,43 +325,33 @@ function monetizer101_get_widget_config($node, $block_name) {
   if (empty($product_name_value) || empty($product_name_value[0]['value'])) {
     return FALSE;
   }
-  $config['nameKeywords'] = $product_name_value[0]['value'];
+  $data['nameKeywords'] = $product_name_value[0]['value'];
 
   $price_value = field_get_items('node', $node, $price_field);
   if (empty($price_value) || empty($price_value[0]['value'])) {
     return FALSE;
   }
 
-  $config['price'] = $price_value[0]['value'];
-  $config['delta'] = variable_get($block_name . '_price_range', '30');
-  // Use retail price to retrieve more accurate results.
-  $config['priceType'] = 'RETAIL_PRICE';
-
-  $config['shopId'] = variable_get('monetizer101_shop_id', '');
-  $config['isoCurrencyCode'] = variable_get('monetizer101_currency_code', '');
-  $config['isoLanguageCode'] = variable_get('monetizer101_language_code', 'en');
-  $config['geolocation'] = (bool) variable_get('monetizer101_geolocation', TRUE);
-  $config['templateId'] = variable_get($block_name . '_template_id', '');
-  $config['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
-  $config['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
-
-  $config['merchantFilter'] = FALSE;
-
+  $data['price'] = $price_value[0]['value'];
+  $data['delta'] = variable_get($block_name . '_price_range', '30');
+  $data['priceType'] = 'RETAIL_PRICE';
+  $data['templateId'] = variable_get($block_name . '_template_id', '');
+  $data['sortingField'] = variable_get($block_name . '_sorting_field', 'PRICE');
+  $data['sortingOrder'] = variable_get($block_name . '_sorting_order', 'asc');
+  $data['merchantFilter'] = FALSE;
   $merchant_number = variable_get($block_name . '_merchant_number', '');
   if (!empty($merchant_number)) {
-    $config['merchantFilter'] = TRUE;
-    $config['merchantNumber'] = $merchant_number;
+    $data['merchantFilter'] = TRUE;
+    $data['merchantNumber'] = $merchant_number;
   }
 
   // The parameters below are required but not currently implemented (so we
   // leave them blank).
-  $config['categoryIds'] = '';
-  $config['merchantIds'] = '';
+  $data['categoryIds'] = '';
+  $data['merchantIds'] = '';
+  $data['resultLimit'] = 1;
 
-  $config['sid'] = $node->nid;
-
-  return $config;
-
+  return $data;
 }
 
 /**
@@ -522,70 +364,8 @@ function monetizer101_get_widget_config($node, $block_name) {
  *   A string containing the HTML for the link.
  */
 function monetizer101_generate_full_link($text) {
-  return l($text, request_uri(), array('fragment' => MONETIZER101_FULL_RESULTS_HTML_ID, 'attributes' => array('class' => 'monetizer101-full-results-link')));
-}
-
-/**
- * Implements hook_flag_default_flags().
- */
-function monetizer101_flag_default_flags() {
-  $flags = array();
-
-  $flags['disable_monetizer_widgets'] = array(
-    'entity_type' => 'node',
-    'title' => 'Disable M101 Widgets',
-    'global' => 1,
-    'types' => variable_get('dennis_layout_flag_disable_m_widget_nodes', array(
-      'article',
-      'review',
-    )),
-    'flag_short' => 'Disable M101 Widgets',
-    'flag_long' => 'Disable the M101 Widgets on this node',
-    'flag_message' => 'M101 Widgets have been disabled on this node',
-    'unflag_short' => 'Enable M101 Widgets',
-    'unflag_long' => 'Enable the M101 Widgets on this node',
-    'unflag_message' => 'The M101 Widgets have been enabled on this node',
-    'unflag_denied_text' => '',
-    'link_type' => 'toggle',
-    'weight' => 0,
-    'show_in_links' => array(
-      'full' => 1,
-      'token' => 0,
-    ),
-    'show_as_field' => 0,
-    'show_on_form' => 1,
-    'access_author' => '',
-    'show_contextual_link' => 0,
-    'show_on_profile' => 0,
-    'access_uid' => '',
-    'api_version' => 3,
-  );
-  return $flags;
-}
-
-/**
- * Implements hook_block_view_alter().
- */
-function monetizer101_block_view_alter(&$data, $block) {
-
-  if ($block->module == 'monetizer101') {
-    // Get current node object so we can see if it has been flagged.
-    if ($node = menu_get_object()) {
-      $disable_mod_widgets = flag_get_flag('disable_monetizer_widgets')->is_flagged($node->nid);
-    }
-    else {
-      return;
-    }
-
-    if ($disable_mod_widgets) {
-      switch ($block->delta) {
-        case 'monetizer101_full':
-          unset($data['content']);
-          break;
-        case 'monetizer101_sticky':
-          unset($data['content']);
-          break;
-      }
-    }
-  }
+  return l($text, request_uri(), array(
+    'fragment' => MONETIZER101_FULL_RESULTS_HTML_ID,
+    'attributes' => array('class' => 'monetizer101-full-results-link')
+  ));
 }
