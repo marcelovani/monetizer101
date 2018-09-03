@@ -58,6 +58,8 @@ function monetizer101_uninstall() {
     variable_del($name . '_merchant_number');
     variable_del($name . '_sorting_field');
     variable_del($name . '_sorting_order');
+    variable_del($name . '_template');
+    variable_del($name . '_title');
   }
 }
 

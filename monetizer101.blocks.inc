@@ -103,6 +103,18 @@ function monetizer101_block_settings_form($block_name) {
         '#options' => array('asc' => t('Ascending'), 'desc' => t('Descending')),
         '#default_value' => variable_get($block_name . '_sorting_order', 'asc'),
       ),
+      $block_name . '_template' => array(
+        '#type' => 'textfield',
+        '#title' => t('Template'),
+        '#description' => t('The template name.'),
+        '#default_value' => _monetizer101_get_template($block_name),
+      ),
+      $block_name . '_title' => array(
+        '#type' => 'textfield',
+        '#title' => t('Title'),
+        '#description' => t('The title of the widget.'),
+        '#default_value' => _monetizer101_get_title($block_name),
+      ),
     ),
   );
 
@@ -139,6 +151,8 @@ function monetizer101_block_view($delta = '') {
         'sid' => 'full',
         'resultLimit' => 10,
       );
+      $block['content']['#data_template'] = _monetizer101_get_template($delta);
+      $block['content']['#data_title'] = _monetizer101_get_title($delta);
       break;
 
     case 'monetizer101_summary':
@@ -149,6 +163,8 @@ function monetizer101_block_view($delta = '') {
         'sid' => 'summary',
         'resultLimit' => 3,
       );
+      $block['content']['#data_template'] = _monetizer101_get_template($delta);
+      $block['content']['#data_title'] = _monetizer101_get_title($delta);
       break;
 
     case 'monetizer101_sticky':
@@ -159,6 +175,8 @@ function monetizer101_block_view($delta = '') {
         'sid' => 'sticky',
         'resultLimit' => 1,
       );
+      $block['content']['#data_template'] = _monetizer101_get_template($delta);
+      $block['content']['#data_title'] = _monetizer101_get_title($delta);
       $block['content']['#attached']['js'][] =  drupal_get_path('module', 'monetizer101') . '/js/monetizer101Sticky.js';
       break;
 
@@ -169,6 +187,25 @@ function monetizer101_block_view($delta = '') {
   return $block;
 }
 
+/**
+ * Get the template for the provided block.
+ *
+ * @param $block
+ * @return string
+ */
+function _monetizer101_get_template($block){
+  return variable_get($block . '_template', '');
+}
+
+/**
+ * Get the title for the provided block.
+ *
+ * @param $block
+ * @return string
+ */
+function _monetizer101_get_title($block){
+  return variable_get($block . '_title', '');
+}
 
 /**
  * Implements hook_block_view_alter().

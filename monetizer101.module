@@ -51,6 +51,8 @@ function monetizer101_theme($existing, $type, $theme, $path) {
     'monetizer101_widget' => array(
       'variables' => array(
         'data_config' => array(),
+        'data_template' => '',
+        'data_title' => '',
         'widget_name' => '',
       ),
     ),
@@ -67,6 +69,14 @@ function theme_monetizer101_widget($vars) {
     'data-type' => 'price-comparison',
     'data-config' => json_encode($vars['data_config']),
   );
+  // Add template if specified.
+  if (!empty($vars['data_template'])) {
+    $attributes['data-template'] = $vars['data_template'];
+  }
+  // Add title if specified.
+  if (!empty($vars['data_title'])) {
+    $attributes['data-title'] = $vars['data_title'];
+  }
   $output = '<div id="' . drupal_html_id($vars['widget_name']) . '"' . drupal_attributes($attributes) . '></div>';
 
   return $output;
