@@ -45,6 +45,7 @@ function monetizer101_uninstall() {
   variable_del('monetizer101_js_url');
   variable_del('monetizer101_url');
   variable_del('monetizer101_disable_widgets_content_types');
+  variable_del('monetizer101_use_require');
 
   foreach (node_type_get_types() as $machine_name => $type) {
     variable_del('monetizer101_product_name_field_' . $machine_name);

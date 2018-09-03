@@ -75,5 +75,12 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('monetizer101_geolocation', TRUE),
   );
 
+  $form['monetizer101']['monetizer101_use_require'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use RequireJS'),
+    '#description' => t('Use RequireJS to load scripts.'),
+    '#default_value' => variable_get('monetizer101_use_require', FALSE),
+  );
+
   return system_settings_form($form);
 }
