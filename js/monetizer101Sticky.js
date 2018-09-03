@@ -55,7 +55,7 @@
       sticky.init = function() {
         // wait for iframe to load (we don't have access to a proper callback unfortunately)
         setTimeout(function () {
-          if (stickyBlock.querySelector('iframe')) {
+          if (stickyBlock.querySelector('.m101-widget')) {
             // set fixed position styles on block
             stickyBlock.style.display = 'block';
             stickyBlock.style.overflow = 'hidden';
