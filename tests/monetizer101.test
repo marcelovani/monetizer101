@@ -129,8 +129,8 @@ class Monetizer101Test extends DrupalWebTestCase {
     // Check that blocks are placed.
     $this->drupalGet('node/' . $node->nid);
 
-    $this->assertRaw('<div id="monetizer101-full" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;full&quot;,&quot;resultLimit&quot;:10}"></div>');
-    $this->assertRaw('<div id="monetizer101-summary" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;summary&quot;,&quot;resultLimit&quot;:3}"></div>');
-    $this->assertRaw('<div id="monetizer101-sticky" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;sid&quot;:&quot;sticky&quot;,&quot;resultLimit&quot;:1}"></div>');
+    $this->assertRaw('<div id="monetizer101-full" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;delta&quot;:&quot;30&quot;,&quot;sid&quot;:&quot;full&quot;,&quot;resultLimit&quot;:10}"></div>');
+    $this->assertRaw('<div id="monetizer101-summary" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;delta&quot;:&quot;30&quot;,&quot;sid&quot;:&quot;summary&quot;,&quot;resultLimit&quot;:3}"></div>');
+    $this->assertRaw('<div id="monetizer101-sticky" data-type="price-comparison" data-config="{&quot;nameKeywords&quot;:&quot;Dell XPS 13&quot;,&quot;price&quot;:&quot;100&quot;,&quot;delta&quot;:&quot;30&quot;,&quot;sid&quot;:&quot;sticky&quot;,&quot;resultLimit&quot;:1}"></div>');
   }
 }

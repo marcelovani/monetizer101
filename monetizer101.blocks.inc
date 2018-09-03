@@ -135,6 +135,7 @@ function monetizer101_block_view($delta = '') {
       $block['content']['#data_config'] = array(
         'nameKeywords' => $data['nameKeywords'],
         'price' => $data['price'],
+        'delta' => $data['delta'],
         'sid' => 'full',
         'resultLimit' => 10,
       );
@@ -144,6 +145,7 @@ function monetizer101_block_view($delta = '') {
       $block['content']['#data_config'] = array(
         'nameKeywords' => $data['nameKeywords'],
         'price' => $data['price'],
+        'delta' => $data['delta'],
         'sid' => 'summary',
         'resultLimit' => 3,
       );
@@ -153,6 +155,7 @@ function monetizer101_block_view($delta = '') {
       $block['content']['#data_config'] = array(
         'nameKeywords' => $data['nameKeywords'],
         'price' => $data['price'],
+        'delta' => $data['delta'],
         'sid' => 'sticky',
         'resultLimit' => 1,
       );
