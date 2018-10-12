@@ -39,9 +39,9 @@ function monetizer101_admin_settings($form, &$form_state) {
   $form['monetizer101']['monetizer101_domain'] = array(
     '#type' => 'textfield',
     '#title' => t('Domain'),
-    '#description' => t('Your Monetizer101 domain.'),
+    '#description' => t('Your Monetizer101 domain. Leave this empty if you are using https and you are using init-library.js in the field above.'),
     '#default_value' => variable_get('monetizer101_domain', ''),
-    '#required' => TRUE,
+    '#required' => FALSE,
   );
 
   $form['monetizer101']['monetizer101_shop_id'] = array(
@@ -66,6 +66,19 @@ function monetizer101_admin_settings($form, &$form_state) {
     '#description' => t('Set the default language code.  Note if geolocation is turned on this will override it (when available).'),
     '#default_value' => variable_get('monetizer101_language_code', 'en'),
     '#required' => TRUE,
+  );
+
+  $block_machine_names = array_keys(monetizer101_block_info());
+  foreach ($block_machine_names as $key) {
+    $current_template_options[$key] = $key;
+  }
+  $form['monetizer101']['monetizer101_current_block'] = array(
+    '#type' => 'select',
+    '#options' => $current_template_options,
+    '#title' => t('Template'),
+    '#description' => 'Machine name of the template you want to use. This field is used only if domain is empty.',
+    '#default_value' => variable_get('monetizer101_current_block', 'monetizer101_full'),
+    '#required' => FALSE,
   );
 
   $form['monetizer101']['monetizer101_geolocation'] = array(
