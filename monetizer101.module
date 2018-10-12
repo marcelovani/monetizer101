@@ -89,23 +89,32 @@ function theme_monetizer101_widget($vars) {
  *   The version of JS to use.
  */
 function monetizer101_add_js() {
-  $data = json_encode(array(
-    'domain' => variable_get('monetizer101_domain'),
+  $data = array(
     'shopId' => variable_get('monetizer101_shop_id'),
     'isoCurrencyCode' => variable_get('monetizer101_currency_code', 'GBP'),
     'isoLanguageCode' => variable_get('monetizer101_language_code', 'en'),
     'geolocation' => variable_get('monetizer101_geolocation', TRUE),
-  ));
-  $url = json_encode(variable_get('monetizer101_js_url'));
-
-  if (variable_get('monetizer101_use_require', FALSE)) {
-    // Use RequireJS if enabled.
-    $js = "require([$url], function (e) {
-      new e.PriceComparison($data);
-    });";
+  );
+  if (!empty(variable_get('monetizer101_domain'))) {
+    $data['domain'] = variable_get('monetizer101_domain');
   }
   else {
-    $js = "(function () {
+    $block_template_variable = variable_get('monetizer101_current_block', 'monetizer101_full') . '_template';
+    $data['priceComparison'] = array('template' => variable_get($block_template_variable, ''));
+  }
+  $data = json_encode($data);
+  $url = json_encode(variable_get('monetizer101_js_url'));
+
+  // If domain is not empty.
+  if (!empty(variable_get('monetizer101_domain'))) {
+    if (variable_get('monetizer101_use_require', FALSE)) {
+      // Use RequireJS if enabled.
+      $js = "require([$url], function (e) {
+      new e.PriceComparison($data);
+    });";
+    }
+    else {
+      $js = "(function () {
         var s = document.createElement('script');
         s.type = 'text/javascript';
         s.async = true;
@@ -116,6 +125,13 @@ function monetizer101_add_js() {
         var x = document.getElementsByTagName('script')[0];
         x.parentNode.insertBefore(s, x);
       })();";
+    }
+  }
+  // If domain is empty.
+  else {
+    $js = "require([$url], function () {
+      m101.init($data);
+    });";
   }
 
   $options = array(
